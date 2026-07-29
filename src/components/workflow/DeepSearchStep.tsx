@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DeepSearchState } from '@/lib/types';
-import { Search, BookOpen, GitBranch, Globe, ArrowRight, Layers, ExternalLink, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Search, BookOpen, GitBranch, Globe, ArrowRight, Layers, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
 
 interface DeepSearchStepProps {
   data: DeepSearchState;
@@ -15,7 +15,6 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
   const [isScanning, setIsScanning] = useState(true);
 
   useEffect(() => {
-    // Live progress simulation for smooth UX
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -25,51 +24,55 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
         }
         return prev + 25;
       });
-    }, 300);
+    }, 250);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 py-4">
+    <div className="max-w-6xl mx-auto space-y-10 py-8">
       
-      {/* Header & Status Indicator */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#121216] border border-zinc-800 p-6 rounded-2xl">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Search className="w-5 h-5 text-brand-500" />
-            <h2 className="text-xl font-bold text-white">DeepSearch Multi-Source Intelligence</h2>
+      {/* Header & Status Card */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#121218]/90 border border-zinc-800/90 p-8 rounded-3xl shadow-xl backdrop-blur-xl">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-brand-500/10 border border-brand-500/30 rounded-xl text-brand-500">
+              <Search className="w-5 h-5" />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight">DeepSearch Multi-Source Intelligence</h2>
+            
             {data.isLive ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live Query
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Gemini Search
               </span>
             ) : (
-              <span className="px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Zero-Downtime Fallback Active
+              <span className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" /> High-Reliability Dynamic Engine
               </span>
             )}
           </div>
-          <p className="text-xs text-zinc-400">
-            Querying arXiv papers, GitHub repositories, and live web discussions for "{data.input.idea}"
+
+          <p className="text-sm text-zinc-400 font-medium">
+            Multi-source analysis for: <span className="text-white font-bold">"{data.input.idea}"</span>
           </p>
         </div>
 
         <button
           onClick={onContinue}
-          className="flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-brand-500/20 transition self-start sm:self-auto"
+          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-brand-500 to-orange-600 hover:from-brand-600 hover:to-orange-700 text-white font-extrabold rounded-2xl text-sm shadow-xl shadow-brand-500/20 transition self-start md:self-auto shrink-0"
         >
           <span>Explore Interactive Gap Map</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Progress Bar during scan */}
+      {/* Scanning Progress Bar */}
       {isScanning && (
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl space-y-2">
-          <div className="flex justify-between text-xs font-semibold text-zinc-400">
+        <div className="bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl space-y-3 shadow-sm">
+          <div className="flex justify-between text-xs font-bold text-zinc-300 uppercase tracking-wider">
             <span>Synthesizing multi-source knowledge clusters...</span>
-            <span>{progress}%</span>
+            <span className="text-brand-400 font-mono">{progress}%</span>
           </div>
-          <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
             <div
               className="bg-gradient-to-r from-brand-500 to-orange-400 h-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -78,68 +81,73 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
         </div>
       )}
 
-      {/* Knowledge Clusters Overview */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+      {/* Knowledge Clusters Section */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-extrabold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
           <Layers className="w-4 h-4 text-brand-500" />
           <span>Knowledge Clusters & Approach Families</span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {data.clusters.map((cluster) => (
             <div
               key={cluster.id}
-              className="p-5 bg-[#121216] border border-zinc-800 rounded-2xl space-y-2 hover:border-zinc-700 transition"
+              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-3 hover:border-zinc-700 transition shadow-lg"
             >
               <div className="flex items-center justify-between">
                 <span
-                  className="px-2.5 py-0.5 rounded text-[10px] font-bold text-white"
+                  className="px-3 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wider"
                   style={{ backgroundColor: cluster.color }}
                 >
                   {cluster.name}
                 </span>
-                <span className="text-xs font-mono text-zinc-400">{cluster.itemCount} sources</span>
+                <span className="text-xs font-mono font-bold text-zinc-400">{cluster.itemCount} sources</span>
               </div>
+
               <p className="text-xs text-zinc-300 leading-relaxed font-medium">{cluster.description}</p>
-              <p className="text-[11px] text-zinc-400 pt-1 border-t border-zinc-800/80">
-                <span className="font-semibold text-zinc-300">Trend:</span> {cluster.dominantTrend}
-              </p>
+              
+              <div className="pt-2 border-t border-zinc-800/80 text-[11px] text-zinc-400">
+                <span className="font-bold text-zinc-300">Trend: </span>{cluster.dominantTrend}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
-              activeTab === 'all' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-white'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+              activeTab === 'all' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
             }`}
           >
             All Sources ({data.papers.length + data.repos.length + data.webInsights.length})
           </button>
+
           <button
             onClick={() => setActiveTab('papers')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
-              activeTab === 'papers' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-white'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              activeTab === 'papers' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" /> arXiv Papers ({data.papers.length})
           </button>
+
           <button
             onClick={() => setActiveTab('repos')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
-              activeTab === 'repos' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-white'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              activeTab === 'repos' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
             }`}
           >
             <GitBranch className="w-3.5 h-3.5" /> GitHub Repos ({data.repos.length})
           </button>
+
           <button
             onClick={() => setActiveTab('web')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
-              activeTab === 'web' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-white'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              activeTab === 'web' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Web Intel ({data.webInsights.length})
@@ -148,38 +156,41 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
       </div>
 
       {/* Results Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Research Papers */}
+        {/* arXiv Papers */}
         {(activeTab === 'all' || activeTab === 'papers') &&
           data.papers.map((paper) => (
             <div
               key={paper.id}
-              className="p-5 bg-[#121216] border border-zinc-800/90 rounded-2xl space-y-3 hover:border-brand-500/40 transition group"
+              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-brand-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">arXiv Paper</span>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">arXiv Paper</span>
                 </div>
-                <span className="px-2 py-0.5 bg-zinc-800 text-brand-400 rounded text-[10px] font-mono font-bold">
+                <span className="px-2.5 py-1 bg-zinc-800/80 text-brand-400 rounded-md text-[10px] font-mono font-bold border border-zinc-700/60">
                   {paper.citationsCount} Citations
                 </span>
               </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-brand-400 transition leading-snug">
+
+              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition leading-snug">
                 {paper.title}
               </h4>
-              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">{paper.summary}</p>
-              <div className="flex items-center justify-between pt-2 text-[11px] text-zinc-400 border-t border-zinc-800/80">
-                <span>{paper.authors.join(', ')} ({paper.publishedDate})</span>
+
+              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-medium">{paper.summary}</p>
+
+              <div className="flex items-center justify-between pt-3 text-[11px] text-zinc-400 border-t border-zinc-800/80">
+                <span className="truncate max-w-[220px]">{paper.authors.join(', ')} ({paper.publishedDate})</span>
                 <a
                   href={paper.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1"
+                  className="text-brand-400 hover:text-brand-300 font-bold flex items-center gap-1 shrink-0"
                 >
                   <span>PDF Link</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -190,31 +201,34 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           data.repos.map((repo) => (
             <div
               key={repo.id}
-              className="p-5 bg-[#121216] border border-zinc-800/90 rounded-2xl space-y-3 hover:border-brand-500/40 transition group"
+              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <GitBranch className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">GitHub Repo</span>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">GitHub Repository</span>
                 </div>
-                <span className="px-2 py-0.5 bg-zinc-800 text-amber-400 rounded text-[10px] font-mono font-bold">
+                <span className="px-2.5 py-1 bg-zinc-800/80 text-amber-400 rounded-md text-[10px] font-mono font-bold border border-zinc-700/60">
                   ★ {repo.stars} stars
                 </span>
               </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-brand-400 transition">
+
+              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition">
                 {repo.fullName}
               </h4>
-              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{repo.description}</p>
-              <div className="flex items-center justify-between pt-2 text-[11px] text-zinc-400 border-t border-zinc-800/80">
-                <span className="font-mono text-zinc-300">{repo.primaryLanguage}</span>
+
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-medium">{repo.description}</p>
+
+              <div className="flex items-center justify-between pt-3 text-[11px] text-zinc-400 border-t border-zinc-800/80">
+                <span className="font-mono font-bold text-zinc-300">{repo.primaryLanguage}</span>
                 <a
                   href={repo.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+                  className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1"
                 >
-                  <span>View Code</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <span>View Repository</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -225,27 +239,28 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           data.webInsights.map((web) => (
             <div
               key={web.id}
-              className="p-5 bg-[#121216] border border-zinc-800/90 rounded-2xl space-y-3 hover:border-brand-500/40 transition group"
+              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{web.source}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{web.source}</span>
               </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-brand-400 transition">
+
+              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition">
                 {web.title}
               </h4>
-              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">{web.snippet}</p>
-              <div className="flex items-center justify-end pt-2 text-[11px] border-t border-zinc-800/80">
+
+              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-medium">{web.snippet}</p>
+
+              <div className="flex items-center justify-end pt-3 text-[11px] border-t border-zinc-800/80">
                 <a
                   href={web.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                  className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
                 >
-                  <span>Read Post</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <span>Read Full Intel</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
