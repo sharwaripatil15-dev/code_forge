@@ -27,7 +27,7 @@ const STEPS: { id: StepId; label: string; icon: LucideIcon }[] = [
 ];
 
 
-export default function Navbar({ currentStep, onSelectStep, onOpenKeyModal, hasInput }: NavbarProps) {
+export default function Navbar({ currentStep, onSelectStep, onOpenKeyModal, onOpenCommandPalette, hasInput, activeTheme, onToggleTheme }: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
 
   return (
