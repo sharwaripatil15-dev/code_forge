@@ -3,23 +3,34 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import ApiKeyModal from '@/components/layout/ApiKeyModal';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 import IdeaInputStep from '@/components/workflow/IdeaInputStep';
 import DeepSearchStep from '@/components/workflow/DeepSearchStep';
 import GapMapStep from '@/components/workflow/GapMapStep';
 import DevilsAdvocateStep from '@/components/workflow/DevilsAdvocateStep';
 import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
+import ForgeTransformation from '@/components/workflow/ForgeTransformation';
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
-import { StepId, IdeaInputData, DeepSearchState, ApiKeys, DevilsAdvocateQuestion } from '@/lib/types';
+import { StepId, IdeaInputData, DeepSearchState, ApiKeys, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
 
 export default function WorkspacePage() {
   const [currentStep, setCurrentStep] = useState<StepId>('input');
   const [searchData, setSearchData] = useState<DeepSearchState>(MOCK_DATASETS.default);
   const [hasInput, setHasInput] = useState(true);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<'forge' | 'blueprint' | 'cyberpunk'>('forge');
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
+
+  const handleToggleTheme = () => {
+    if (activeTheme === 'forge') setActiveTheme('blueprint');
+    else if (activeTheme === 'blueprint') setActiveTheme('cyberpunk');
+    else setActiveTheme('forge');
+  };
 
   const handleIdeaSubmit = async (input: IdeaInputData) => {
     setIsLoading(true);
@@ -36,7 +47,6 @@ export default function WorkspacePage() {
       if (resData.success && resData.data) {
         setSearchData(resData.data);
       } else {
-        // Fallback
         setSearchData({
           ...MOCK_DATASETS.default,
           input,
@@ -63,14 +73,42 @@ export default function WorkspacePage() {
     }));
   };
 
+  const handleUpdateMetrics = (updatedMetrics: GapMetrics) => {
+    setSearchData((prev) => ({
+      ...prev,
+      metrics: updatedMetrics,
+    }));
+  };
+
+  const handleGenerateBlueprint = () => {
+    setIsTransforming(true);
+  };
+
+  const handleTransformationComplete = () => {
+    setIsTransforming(false);
+    setCurrentStep('blueprint');
+  };
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-forge-black text-forge-white flex flex-col selection:bg-brand-ember selection:text-white font-sans">
+      
+      {/* Signature Moment: Forge Transformation Overlay */}
+      {isTransforming && (
+        <ForgeTransformation
+          ideaText={searchData.input.idea}
+          onComplete={handleTransformationComplete}
+        />
+      )}
+
       {/* Top Navbar */}
       <Navbar
         currentStep={currentStep}
         onSelectStep={setCurrentStep}
         onOpenKeyModal={() => setIsKeyModalOpen(true)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         hasInput={hasInput}
+        activeTheme={activeTheme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Workspace Canvas */}
@@ -99,8 +137,9 @@ export default function WorkspacePage() {
         {currentStep === 'devils' && (
           <DevilsAdvocateStep
             data={searchData}
-            onContinue={() => setCurrentStep('blueprint')}
+            onContinue={handleGenerateBlueprint}
             onUpdateQuestions={handleUpdateQuestions}
+            onUpdateMetrics={handleUpdateMetrics}
           />
         )}
 
@@ -108,6 +147,7 @@ export default function WorkspacePage() {
           <ProjectHubStep
             blueprint={searchData.blueprint}
             onOpenTelegramMentor={() => setCurrentStep('mentor')}
+            githubToken={apiKeys.githubToken}
           />
         )}
 
@@ -120,6 +160,15 @@ export default function WorkspacePage() {
         )}
       </main>
 
+      {/* Command Palette Modal */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectStep={setCurrentStep}
+        onOpenKeyModal={() => setIsKeyModalOpen(true)}
+        onLaunchMentor={() => setCurrentStep('mentor')}
+      />
+
       {/* API Key Modal Drawer */}
       <ApiKeyModal
         isOpen={isKeyModalOpen}
@@ -128,9 +177,9 @@ export default function WorkspacePage() {
         currentKeys={apiKeys}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-800/80 py-4 text-center text-xs text-zinc-500">
-        IdeaForge AI Research & Innovation Copilot • iNSIGHTS Hackathon MVP
+      {/* Blueprint Footer */}
+      <footer className="border-t border-quenched-steel/20 py-4 text-center text-xs font-mono text-quenched-steel-light">
+        IdeaForge AI Research & Innovation Copilot • Research. Build. Impact.
       </footer>
     </div>
   );

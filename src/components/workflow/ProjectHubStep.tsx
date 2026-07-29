@@ -2,202 +2,409 @@
 
 import React, { useState } from 'react';
 import { ProjectBlueprint } from '@/lib/types';
-import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import ArchitectureNodeCanvas from '../visualization/ArchitectureNodeCanvas';
+import TeamSkillMatrix from './TeamSkillMatrix';
+import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ProjectHubStepProps {
   blueprint: ProjectBlueprint;
   onOpenTelegramMentor: () => void;
+  githubToken?: string;
 }
 
-export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: ProjectHubStepProps) {
+export default function ProjectHubStep({ blueprint, onOpenTelegramMentor, githubToken }: ProjectHubStepProps) {
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
   const [selectedScaffold, setSelectedScaffold] = useState(0);
+  const [isCreatingRepo, setIsCreatingRepo] = useState(false);
+  const [createdRepoUrl, setCreatedRepoUrl] = useState<string | null>(null);
+  const [createRepoError, setCreateRepoError] = useState<string | null>(null);
+
+  const apisList = blueprint.apisAndDatasets || [];
+  const timelineData = blueprint.timeline || {
+    totalEstimatedWeeks: 4,
+    totalEstimatedHours: 64,
+    criticalPath: 'Core Engine → AI Reasoning → Integration Webhooks',
+    phases: [
+      { phaseName: 'Phase 1: Foundations', duration: 'Week 1 (16h)', goal: 'Core engine setup' },
+      { phaseName: 'Phase 2: AI Reasoning', duration: 'Week 2 (18h)', goal: 'Gemini synthesis & verification' },
+      { phaseName: 'Phase 3: Integration', duration: 'Week 3 (15h)', goal: 'Webhooks & alert triggers' },
+      { phaseName: 'Phase 4: Deployment', duration: 'Week 4 (15h)', goal: 'Vercel deployment & docs' },
+    ],
+  };
 
   const handleCopy = (content: string, filePath: string) => {
     navigator.clipboard.writeText(content);
     setCopiedFile(filePath);
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-    setTimeout(() => setCopiedFile(null), 2000);
+    setTimeout(() => setCopiedFile(null), 2500);
   };
 
+  const handleCreateRepo = async () => {
+    setIsCreatingRepo(true);
+    setCreateRepoError(null);
+
+    try {
+      const response = await fetch('/api/github/create-repo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blueprint, githubToken }),
+      });
+
+      const data = await response.json();
+      if (data.success && data.repoUrl) {
+        setCreatedRepoUrl(data.repoUrl);
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setCreateRepoError(data.error || 'Failed to create GitHub repository');
+      }
+    } catch (err: any) {
+      setCreateRepoError(err.message || 'Network error creating repository');
+    } finally {
+      setIsCreatingRepo(false);
+    }
+  };
+
+  const activeScaffold = blueprint.scaffoldFiles[selectedScaffold] || blueprint.scaffoldFiles[0];
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10 py-8">
+    <div className="max-w-6xl mx-auto space-y-8 py-6">
       
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#121218]/90 border border-zinc-800/90 p-8 rounded-3xl shadow-xl backdrop-blur-xl">
+      <Card variant="blueprint" className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 shadow-xl">
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-brand-500/10 border border-brand-500/30 rounded-xl text-brand-500">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="p-2.5 bg-brand-ember/15 border border-brand-ember/30 rounded-blueprint text-brand-ember">
               <Rocket className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">Project HUB: Generated Blueprint</h2>
-            <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-              Implementation Ready
-            </span>
+            <h2 className="text-2xl font-display font-extrabold text-forge-white tracking-tight">
+              Project HUB: Complete Implementation Plan
+            </h2>
+            <Badge variant="emerald">
+              Interactive Blueprint Workspace
+            </Badge>
           </div>
 
-          <p className="text-sm text-zinc-400 font-medium">
-            {blueprint.title} — {blueprint.tagline}
+          <p className="text-sm font-sans text-zinc-400">
+            <span className="text-forge-white font-bold">{blueprint.title}</span> — {blueprint.tagline}
           </p>
         </div>
 
-        <button
-          onClick={onOpenTelegramMentor}
-          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-brand-500 to-orange-600 hover:from-brand-600 hover:to-orange-700 text-white font-extrabold rounded-2xl text-sm shadow-xl shadow-brand-500/20 transition self-start md:self-auto shrink-0"
-        >
-          <Send className="w-4 h-4" />
-          <span>Launch AI Telegram Mentor Agent</span>
-        </button>
-      </div>
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+          <Button
+            variant="quenched"
+            size="md"
+            isLoading={isCreatingRepo}
+            onClick={handleCreateRepo}
+            leftIcon={<GitBranch className="w-4 h-4 text-forge-white" />}
+          >
+            Create GitHub Repo
+          </Button>
+
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onOpenTelegramMentor}
+            leftIcon={<Send className="w-4 h-4" />}
+          >
+            Launch AI Telegram Mentor Agent
+          </Button>
+        </div>
+      </Card>
+
+      {/* GitHub Created Repository Notification Banner */}
+      {createdRepoUrl && (
+        <Card variant="solid" className="bg-emerald-500/10 border-emerald-500/30 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
+              <Check className="w-4 h-4" />
+              <span>GitHub Repository Provisioned Successfully!</span>
+            </div>
+            <p className="text-xs font-sans text-zinc-300">
+              Populated with blueprint README, dependencies, and scaffold structure: <span className="font-mono text-forge-white">{createdRepoUrl}</span>
+            </p>
+          </div>
+
+          <a
+            href={createdRepoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-mono font-bold text-xs rounded-blueprint shadow-md transition shrink-0"
+          >
+            <span>Open Repository on GitHub</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </Card>
+      )}
+
+      {createRepoError && (
+        <Card variant="solid" className="bg-red-500/10 border-red-500/30 p-4 text-xs font-mono text-red-400">
+          <span className="font-bold">Error creating repository: </span>{createRepoError}
+        </Card>
+      )}
 
       {/* Problem & UVP Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-[#121218]/80 border border-zinc-800 p-8 rounded-3xl space-y-3 shadow-lg">
-          <h3 className="text-xs font-bold text-brand-400 uppercase tracking-widest">Problem Statement</h3>
-          <p className="text-sm text-zinc-300 leading-relaxed font-medium">{blueprint.problemStatement}</p>
-        </div>
+        <Card variant="blueprint" className="p-8 space-y-3">
+          <h3 className="text-xs font-mono font-bold text-brand-ember uppercase tracking-widest">Problem Statement</h3>
+          <p className="text-sm font-sans text-zinc-300 leading-relaxed font-medium">{blueprint.problemStatement}</p>
+        </Card>
 
-        <div className="bg-[#121218]/80 border border-zinc-800 p-8 rounded-3xl space-y-3 shadow-lg">
-          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Unique Value Proposition</h3>
-          <p className="text-sm text-zinc-300 leading-relaxed font-medium">{blueprint.uniqueValueProposition}</p>
-        </div>
+        <Card variant="blueprint" className="p-8 space-y-3">
+          <h3 className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Unique Value Proposition</h3>
+          <p className="text-sm font-sans text-zinc-300 leading-relaxed font-medium">{blueprint.uniqueValueProposition}</p>
+        </Card>
       </div>
 
-      {/* System Architecture Grid */}
-      <div className="bg-[#121218]/90 border border-zinc-800 rounded-3xl p-8 space-y-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-          <h3 className="text-lg font-extrabold text-white flex items-center gap-3">
-            <Cpu className="w-5 h-5 text-brand-500" />
-            <span>Auto-Generated System Architecture</span>
-          </h3>
-          <span className="text-xs font-mono font-bold text-zinc-400">5 Pipeline Nodes</span>
-        </div>
+      {/* SECTION 1: Interactive System Architecture Canvas */}
+      <ArchitectureNodeCanvas nodes={blueprint.architectureNodes} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
-          {blueprint.architectureNodes.map((node, idx) => (
-            <div
-              key={node.id}
-              className="p-5 bg-zinc-900/90 border border-zinc-800 rounded-2xl space-y-2 relative group hover:border-brand-500/50 transition shadow-sm"
-            >
-              <div className="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Node 0{idx + 1}</div>
-              <h4 className="text-xs font-extrabold text-white truncate">{node.title}</h4>
-              <p className="text-[11px] font-mono text-zinc-400">{node.tech}</p>
-              <p className="text-[11px] text-zinc-500 line-clamp-2 leading-relaxed">{node.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tech Stack */}
-      <div className="bg-[#121218]/90 border border-zinc-800 rounded-3xl p-8 space-y-6 shadow-xl">
-        <h3 className="text-lg font-extrabold text-white flex items-center gap-3 border-b border-zinc-800/80 pb-4">
-          <Layers className="w-5 h-5 text-brand-500" />
-          <span>Hackathon-Optimized Tech Stack</span>
+      {/* SECTION 2: Tech Stack */}
+      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl">
+        <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3 border-b border-quenched-steel/20 pb-4">
+          <Layers className="w-5 h-5 text-brand-ember" />
+          <span>2. Technology Stack & Rationale</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {blueprint.techStack.map((tech, idx) => (
-            <div key={idx} className="p-6 bg-zinc-900/90 border border-zinc-800 rounded-2xl space-y-3">
+            <Card key={idx} variant="solid" className="p-6 space-y-3 border-quenched-steel/25">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{tech.category}</span>
-                <span className="px-3 py-1 bg-brand-500/10 text-brand-400 font-bold rounded-md text-[10px]">
+                <span className="text-xs font-mono font-bold text-quenched-steel-light uppercase tracking-widest">{tech.category}</span>
+                <Badge variant="ember" size="sm">
                   {tech.chosen}
-                </span>
+                </Badge>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed font-medium">{tech.rationale}</p>
+              <p className="text-xs font-sans text-zinc-300 leading-relaxed">{tech.rationale}</p>
               
-              <div className="text-[11px] text-zinc-500 pt-1">
+              <div className="text-[11px] font-mono text-zinc-500 pt-1 border-t border-quenched-steel/15">
                 Alternatives considered: {tech.alternatives.join(', ')}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </Card>
 
-      {/* Milestones Roadmap */}
-      <div className="bg-[#121218]/90 border border-zinc-800 rounded-3xl p-8 space-y-6 shadow-xl">
-        <h3 className="text-lg font-extrabold text-white flex items-center gap-3 border-b border-zinc-800/80 pb-4">
-          <Calendar className="w-5 h-5 text-brand-500" />
-          <span>Sprint Milestones Roadmap</span>
+      {/* SECTION 3: Recommended APIs & Datasets */}
+      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl border-emerald-500/20">
+        <div className="flex items-center justify-between border-b border-quenched-steel/20 pb-4">
+          <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3">
+            <Database className="w-5 h-5 text-emerald-400" />
+            <span>3. Recommended Named APIs & Datasets</span>
+          </h3>
+          <Badge variant="emerald" size="sm">
+            {apisList.length} Real-World Data Integrations
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {apisList.map((api, idx) => (
+            <Card key={idx} variant="interactive" className="p-6 space-y-3 border-emerald-500/30">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">
+                    {api.type}
+                  </span>
+                  <h4 className="text-sm font-display font-extrabold text-forge-white">{api.name}</h4>
+                </div>
+                <Badge variant="quenched" size="sm">
+                  {api.licenseOrTier}
+                </Badge>
+              </div>
+
+              <p className="text-xs font-sans text-zinc-300 leading-relaxed">{api.description}</p>
+              
+              <div className="pt-3 border-t border-quenched-steel/20 space-y-1 text-[11px] font-mono">
+                <div>
+                  <span className="font-bold text-forge-white">Project Use Case: </span>
+                  <span className="text-zinc-300 font-sans">{api.useCase}</span>
+                </div>
+                <div className="pt-1">
+                  <a
+                    href={api.accessUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-emerald-400 rounded w-fit"
+                  >
+                    <span>Docs / Access Endpoint</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Card>
+
+      {/* SECTION 4: Development Roadmap & Timeline Estimates */}
+      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl border-amber-molten/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-quenched-steel/20 pb-4">
+          <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3">
+            <Clock className="w-5 h-5 text-amber-molten" />
+            <span>4. Development Roadmap & Time Estimates</span>
+          </h3>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <span className="text-amber-molten font-bold">Total: {timelineData.totalEstimatedHours} Hours</span>
+            <span className="text-quenched-steel-light font-bold">({timelineData.totalEstimatedWeeks} Weeks)</span>
+          </div>
+        </div>
+
+        <Card variant="solid" className="p-4 bg-amber-500/10 border-amber-500/30 text-xs font-mono space-y-1">
+          <span className="font-bold text-amber-molten uppercase tracking-wider">Critical Development Path: </span>
+          <span className="text-forge-white">{timelineData.criticalPath}</span>
+        </Card>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {timelineData.phases.map((phase, idx) => (
+            <Card key={idx} variant="solid" className="p-5 space-y-2 border-quenched-steel/25">
+              <div className="flex items-center justify-between text-xs font-mono font-bold">
+                <span className="text-amber-molten">Phase 0{idx + 1}</span>
+                <span className="text-quenched-steel-light">{phase.duration}</span>
+              </div>
+              <h4 className="text-xs font-display font-extrabold text-forge-white">{phase.phaseName}</h4>
+              <p className="text-[11px] font-sans text-zinc-400 leading-relaxed">{phase.goal}</p>
+            </Card>
+          ))}
+        </div>
+      </Card>
+
+      {/* SECTION 5: Milestones Roadmap & Actionable Steps */}
+      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl">
+        <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3 border-b border-quenched-steel/20 pb-4">
+          <Calendar className="w-5 h-5 text-brand-ember" />
+          <span>5. Sprint Milestones & Actionable Task Breakdown</span>
         </h3>
 
         <div className="space-y-4">
           {blueprint.milestones.map((m) => (
-            <div key={m.week} className="p-6 bg-zinc-900/90 border border-zinc-800 rounded-2xl space-y-3">
+            <Card key={m.week} variant="solid" className="p-6 space-y-4 border-quenched-steel/25">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-brand-500 text-white font-mono font-bold text-xs flex items-center justify-center">
+                  <span className="w-7 h-7 rounded-full bg-brand-ember text-white font-mono font-bold text-xs flex items-center justify-center">
                     {m.week}
                   </span>
-                  <h4 className="text-sm font-extrabold text-white">{m.title}</h4>
+                  <h4 className="text-sm font-display font-bold text-forge-white">{m.title}</h4>
                 </div>
-                <span className="text-xs font-mono font-bold text-zinc-400">{m.duration}</span>
+                <span className="text-xs font-mono font-bold text-quenched-steel-light">{m.duration}</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-zinc-300 pt-1">
+              {/* Actionable Tasks List */}
+              {m.actionableSteps && m.actionableSteps.length > 0 && (
+                <div className="bg-forge-black/50 border border-quenched-steel/20 p-4 rounded-blueprint space-y-2">
+                  <span className="text-[10px] font-mono font-bold text-brand-ember uppercase tracking-widest flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5" />
+                    <span>Actionable Engineering Tasks:</span>
+                  </span>
+                  <ul className="space-y-1.5 pl-1">
+                    {m.actionableSteps.map((task, tIdx) => (
+                      <li key={tIdx} className="text-xs font-sans text-zinc-200 flex items-start gap-2">
+                        <span className="text-brand-ember font-mono text-[11px] font-bold">•</span>
+                        <span>{task}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-sans text-zinc-300 pt-1">
                 <div>
-                  <span className="font-bold text-emerald-400">Deliverables: </span>
+                  <span className="font-bold text-emerald-400 font-mono">Deliverables: </span>
                   {m.deliverables.join(', ')}
                 </div>
                 <div>
-                  <span className="font-bold text-amber-400">Potential Risk: </span>
+                  <span className="font-bold text-amber-molten font-mono">Potential Risk: </span>
                   {m.potentialRisk}
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </Card>
 
-      {/* Scaffold Exporter */}
-      <div className="bg-[#121218]/90 border border-zinc-800 rounded-3xl p-8 space-y-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-          <h3 className="text-lg font-extrabold text-white flex items-center gap-3">
-            <Terminal className="w-5 h-5 text-brand-500" />
-            <span>Blueprint → Repo Boilerplate Exporter</span>
-          </h3>
+      {/* TEAM SKILL-GAP MATRIX */}
+      <TeamSkillMatrix
+        projectTitle={blueprint.title}
+        techStack={blueprint.techStack}
+        architectureNodes={blueprint.architectureNodes}
+      />
 
-          <button
-            onClick={() => handleCopy(blueprint.scaffoldFiles[selectedScaffold].content, blueprint.scaffoldFiles[selectedScaffold].filePath)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition shadow-md shadow-brand-500/20"
+      {/* SECTION 6: IDE Split-Pane Documentation & Boilerplate Explorer */}
+      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-quenched-steel/20 pb-4">
+          <div>
+            <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3">
+              <Terminal className="w-5 h-5 text-brand-ember" />
+              <span>6. IDE Split-Pane Code & Documentation Explorer</span>
+            </h3>
+            <p className="text-xs font-sans text-zinc-400">
+              Explore auto-generated repository boilerplate files and API specs in an IDE-style split view.
+            </p>
+          </div>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleCopy(activeScaffold.content, activeScaffold.filePath)}
+            leftIcon={copiedFile === activeScaffold.filePath ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           >
-            {copiedFile === blueprint.scaffoldFiles[selectedScaffold].filePath ? (
-              <>
-                <Check className="w-4 h-4" /> Copied to Clipboard!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" /> Copy Boilerplate File
-              </>
-            )}
-          </button>
+            {copiedFile === activeScaffold.filePath ? 'Copied File to Clipboard!' : 'Copy Selected File'}
+          </Button>
         </div>
 
-        {/* File Tabs */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-1">
-          {blueprint.scaffoldFiles.map((file, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedScaffold(idx)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition flex items-center gap-2 ${
-                selectedScaffold === idx
-                  ? 'bg-zinc-800 text-brand-400 border border-brand-500/40 shadow-sm'
-                  : 'text-zinc-400 hover:bg-zinc-900'
-              }`}
-            >
-              <FileCode className="w-4 h-4" />
-              <span>{file.filePath}</span>
-            </button>
-          ))}
-        </div>
+        {/* IDE Split-Pane Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 border border-quenched-steel/30 rounded-blueprint overflow-hidden shadow-2xl bg-forge-black">
+          
+          {/* Left Sidebar File Tree */}
+          <div className="lg:col-span-4 bg-forge-surface-dark border-r border-quenched-steel/20 p-4 space-y-3">
+            <div className="text-[10px] font-mono font-bold text-quenched-steel-light uppercase tracking-widest flex items-center gap-1.5 pb-2 border-b border-quenched-steel/15">
+              <Folder className="w-3.5 h-3.5 text-brand-ember" />
+              <span>Repository Explorer</span>
+            </div>
 
-        {/* Code View */}
-        <pre className="p-6 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs font-mono text-zinc-200 overflow-x-auto max-h-96 leading-relaxed shadow-inner">
-          {blueprint.scaffoldFiles[selectedScaffold].content}
-        </pre>
-      </div>
+            <div className="space-y-1">
+              {blueprint.scaffoldFiles.map((file, idx) => {
+                const isActive = selectedScaffold === idx;
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedScaffold(idx)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-mono text-left transition ${
+                      isActive
+                        ? 'bg-brand-ember/20 text-brand-ember font-bold border border-brand-ember/30'
+                        : 'text-zinc-400 hover:bg-forge-surface-light hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-ember' : 'text-quenched-steel-light'}`} />
+                      <span className="truncate">{file.filePath}</span>
+                    </div>
+                    <ChevronRight className={`w-3.5 h-3.5 opacity-60 ${isActive ? 'text-brand-ember' : 'hidden'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Code View Window */}
+          <div className="lg:col-span-8 p-5 bg-forge-black space-y-3 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-xs font-mono border-b border-quenched-steel/20 pb-2">
+              <span className="text-forge-white font-bold">{activeScaffold.filePath}</span>
+              <span className="text-zinc-500">{activeScaffold.description}</span>
+            </div>
+
+            <pre className="p-4 bg-forge-black/90 text-xs font-mono text-zinc-200 overflow-x-auto max-h-[380px] leading-relaxed select-all">
+              {activeScaffold.content}
+            </pre>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
+
+

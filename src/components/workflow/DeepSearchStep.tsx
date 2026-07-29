@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { DeepSearchState } from '@/lib/types';
-import { Search, BookOpen, GitBranch, Globe, ArrowRight, Layers, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Search, BookOpen, GitBranch, Globe, ArrowRight, Layers, ExternalLink, ShieldCheck, Scale } from 'lucide-react';
 
 interface DeepSearchStepProps {
   data: DeepSearchState;
@@ -10,9 +13,12 @@ interface DeepSearchStepProps {
 }
 
 export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps) {
-  const [activeTab, setActiveTab] = useState<'all' | 'papers' | 'repos' | 'web'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'papers' | 'repos' | 'patents' | 'web'>('all');
   const [progress, setProgress] = useState(0);
   const [isScanning, setIsScanning] = useState(true);
+
+  const patentsList = data.patents || [];
+  const totalCount = data.papers.length + data.repos.length + patentsList.length + data.webInsights.length;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -24,248 +30,295 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
         }
         return prev + 25;
       });
-    }, 250);
+    }, 220);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 py-8">
+    <div className="max-w-6xl mx-auto space-y-8 py-6">
       
       {/* Header & Status Card */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#121218]/90 border border-zinc-800/90 p-8 rounded-3xl shadow-xl backdrop-blur-xl">
+      <Card variant="blueprint" className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 shadow-xl">
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-brand-500/10 border border-brand-500/30 rounded-xl text-brand-500">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="p-2.5 bg-brand-ember/15 border border-brand-ember/30 rounded-blueprint text-brand-ember">
               <Search className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">DeepSearch Multi-Source Intelligence</h2>
+            <h2 className="text-2xl font-display font-extrabold text-forge-white tracking-tight">
+              DeepSearch Intelligence Dossier
+            </h2>
             
             {data.isLive ? (
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Gemini Search
-              </span>
+              <Badge variant="emerald" pulse>
+                Live Multi-Source Search
+              </Badge>
             ) : (
-              <span className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+              <Badge variant="quenched">
                 <ShieldCheck className="w-3.5 h-3.5" /> High-Reliability Dynamic Engine
-              </span>
+              </Badge>
             )}
           </div>
 
-          <p className="text-sm text-zinc-400 font-medium">
-            Multi-source analysis for: <span className="text-white font-bold">"{data.input.idea}"</span>
+          <p className="text-sm font-sans text-zinc-400">
+            Multi-source intelligence analysis for: <span className="text-forge-white font-bold">"{data.input.idea}"</span>
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={onContinue}
-          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-brand-500 to-orange-600 hover:from-brand-600 hover:to-orange-700 text-white font-extrabold rounded-2xl text-sm shadow-xl shadow-brand-500/20 transition self-start md:self-auto shrink-0"
+          rightIcon={<ArrowRight className="w-4 h-4" />}
+          className="self-start md:self-auto shrink-0"
         >
-          <span>Explore Interactive Gap Map</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
+          Explore Interactive Gap Map
+        </Button>
+      </Card>
 
-      {/* Scanning Progress Bar */}
+      {/* Scanning Progress Gauge */}
       {isScanning && (
-        <div className="bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl space-y-3 shadow-sm">
-          <div className="flex justify-between text-xs font-bold text-zinc-300 uppercase tracking-wider">
-            <span>Synthesizing multi-source knowledge clusters...</span>
-            <span className="text-brand-400 font-mono">{progress}%</span>
+        <Card variant="solid" className="p-5 space-y-3 shadow-sm border-quenched-steel/30">
+          <div className="flex justify-between text-xs font-mono font-bold text-forge-white uppercase tracking-wider">
+            <span>Synthesizing arXiv + GitHub + Google Patents knowledge clusters...</span>
+            <span className="text-brand-ember font-mono">{progress}%</span>
           </div>
-          <div className="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-forge-surface-light h-2.5 rounded-full overflow-hidden border border-quenched-steel/20">
             <div
-              className="bg-gradient-to-r from-brand-500 to-orange-400 h-full transition-all duration-300"
+              className="bg-gradient-to-r from-brand-ember via-amber-molten to-brand-ember h-full transition-all duration-300"
               style={{ width: `${progress}%` }}
-            ></div>
+            />
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Knowledge Clusters Section */}
       <div className="space-y-4">
-        <h3 className="text-xs font-extrabold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-          <Layers className="w-4 h-4 text-brand-500" />
-          <span>Knowledge Clusters & Approach Families</span>
+        <h3 className="text-xs font-mono font-bold text-quenched-steel-light uppercase tracking-widest flex items-center gap-2">
+          <Layers className="w-4 h-4 text-brand-ember" />
+          <span>Knowledge Clusters & Prior-Art Families</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {data.clusters.map((cluster) => (
-            <div
-              key={cluster.id}
-              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-3 hover:border-zinc-700 transition shadow-lg"
-            >
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {data.clusters.concat([
+            {
+              id: 'c-patents',
+              name: 'Patents & Prior Art',
+              color: '#ff3b00',
+              description: 'Published patent claims and intellectual property coverage.',
+              itemCount: patentsList.length,
+              dominantTrend: 'Novelty impact factored in score.',
+            }
+          ]).map((cluster) => (
+            <Card key={cluster.id} variant="blueprint" className="space-y-3 p-5">
               <div className="flex items-center justify-between">
                 <span
-                  className="px-3 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wider"
+                  className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold text-white uppercase tracking-wider truncate max-w-[140px]"
                   style={{ backgroundColor: cluster.color }}
                 >
                   {cluster.name}
                 </span>
-                <span className="text-xs font-mono font-bold text-zinc-400">{cluster.itemCount} sources</span>
+                <span className="text-xs font-mono font-bold text-quenched-steel-light">{cluster.itemCount} sources</span>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed font-medium">{cluster.description}</p>
+              <p className="text-xs text-zinc-300 leading-relaxed font-sans">{cluster.description}</p>
               
-              <div className="pt-2 border-t border-zinc-800/80 text-[11px] text-zinc-400">
-                <span className="font-bold text-zinc-300">Trend: </span>{cluster.dominantTrend}
+              <div className="pt-2 border-t border-quenched-steel/20 text-[11px] font-mono text-zinc-400">
+                <span className="font-bold text-forge-white">Dominant Trend: </span>{cluster.dominantTrend}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center gap-3 overflow-x-auto pb-1">
-          <button
+      <div className="flex items-center justify-between border-b border-quenched-steel/20 pb-4">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <Button
+            size="sm"
+            variant={activeTab === 'all' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-              activeTab === 'all' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-            }`}
           >
-            All Sources ({data.papers.length + data.repos.length + data.webInsights.length})
-          </button>
+            All Sources ({totalCount})
+          </Button>
 
-          <button
+          <Button
+            size="sm"
+            variant={activeTab === 'papers' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('papers')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'papers' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-            }`}
+            leftIcon={<BookOpen className="w-3.5 h-3.5" />}
           >
-            <BookOpen className="w-3.5 h-3.5" /> arXiv Papers ({data.papers.length})
-          </button>
+            arXiv Papers ({data.papers.length})
+          </Button>
 
-          <button
+          <Button
+            size="sm"
+            variant={activeTab === 'repos' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('repos')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'repos' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-            }`}
+            leftIcon={<GitBranch className="w-3.5 h-3.5" />}
           >
-            <GitBranch className="w-3.5 h-3.5" /> GitHub Repos ({data.repos.length})
-          </button>
+            GitHub Repos ({data.repos.length})
+          </Button>
 
-          <button
-            onClick={() => setActiveTab('web')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'web' ? 'bg-brand-500 text-white shadow-md' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-            }`}
+          <Button
+            size="sm"
+            variant={activeTab === 'patents' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('patents')}
+            leftIcon={<Scale className="w-3.5 h-3.5" />}
           >
-            <Globe className="w-3.5 h-3.5" /> Web Intel ({data.webInsights.length})
-          </button>
+            Google Patents ({patentsList.length})
+          </Button>
+
+          <Button
+            size="sm"
+            variant={activeTab === 'web' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('web')}
+            leftIcon={<Globe className="w-3.5 h-3.5" />}
+          >
+            Web Intel ({data.webInsights.length})
+          </Button>
         </div>
       </div>
 
       {/* Results Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
+        {/* Google Patents & Prior Art */}
+        {(activeTab === 'all' || activeTab === 'patents') &&
+          patentsList.map((patent) => (
+            <Card key={patent.id} variant="interactive" className="space-y-4 group border-brand-ember/30">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-brand-ember shrink-0" />
+                  <span className="text-[10px] font-mono font-bold text-brand-ember uppercase tracking-widest">
+                    Google Patent • {patent.patentNumber}
+                  </span>
+                </div>
+                <Badge variant="amber" size="sm">
+                  Relevance: {patent.relevanceScore}%
+                </Badge>
+              </div>
+
+              <h4 className="text-sm font-display font-bold text-forge-white group-hover:text-brand-ember transition leading-snug">
+                {patent.title}
+              </h4>
+
+              <p className="text-xs text-zinc-300 line-clamp-3 leading-relaxed font-sans">{patent.abstract}</p>
+
+              <div className="flex items-center justify-between pt-3 text-[11px] font-mono text-zinc-400 border-t border-quenched-steel/20">
+                <span className="truncate max-w-[220px]">Assignee: {patent.assignee}</span>
+                <a
+                  href={patent.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-ember hover:text-amber-molten font-bold flex items-center gap-1 shrink-0 focus-visible:ring-2 focus-visible:ring-brand-ember rounded"
+                >
+                  <span>Google Patents</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </Card>
+          ))}
+
         {/* arXiv Papers */}
         {(activeTab === 'all' || activeTab === 'papers') &&
           data.papers.map((paper) => (
-            <div
-              key={paper.id}
-              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
-            >
+            <Card key={paper.id} variant="interactive" className="space-y-4 group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-brand-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">arXiv Paper</span>
+                  <BookOpen className="w-4 h-4 text-brand-ember shrink-0" />
+                  <span className="text-[10px] font-mono font-bold text-quenched-steel-light uppercase tracking-widest">arXiv Dossier</span>
                 </div>
-                <span className="px-2.5 py-1 bg-zinc-800/80 text-brand-400 rounded-md text-[10px] font-mono font-bold border border-zinc-700/60">
+                <Badge variant="ember" size="sm">
                   {paper.citationsCount} Citations
-                </span>
+                </Badge>
               </div>
 
-              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition leading-snug">
+              <h4 className="text-sm font-display font-bold text-forge-white group-hover:text-brand-ember transition leading-snug">
                 {paper.title}
               </h4>
 
-              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-medium">{paper.summary}</p>
+              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-sans">{paper.summary}</p>
 
-              <div className="flex items-center justify-between pt-3 text-[11px] text-zinc-400 border-t border-zinc-800/80">
+              <div className="flex items-center justify-between pt-3 text-[11px] font-mono text-zinc-400 border-t border-quenched-steel/20">
                 <span className="truncate max-w-[220px]">{paper.authors.join(', ')} ({paper.publishedDate})</span>
                 <a
                   href={paper.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-400 hover:text-brand-300 font-bold flex items-center gap-1 shrink-0"
+                  className="text-brand-ember hover:text-amber-molten font-bold flex items-center gap-1 shrink-0 focus-visible:ring-2 focus-visible:ring-brand-ember rounded"
                 >
-                  <span>PDF Link</span>
+                  <span>PDF Dossier</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
-            </div>
+            </Card>
           ))}
 
         {/* GitHub Repos */}
         {(activeTab === 'all' || activeTab === 'repos') &&
           data.repos.map((repo) => (
-            <div
-              key={repo.id}
-              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
-            >
+            <Card key={repo.id} variant="interactive" className="space-y-4 group">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <GitBranch className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">GitHub Repository</span>
+                  <GitBranch className="w-4 h-4 text-quenched-steel-light shrink-0" />
+                  <span className="text-[10px] font-mono font-bold text-quenched-steel-light uppercase tracking-widest">GitHub Repository</span>
                 </div>
-                <span className="px-2.5 py-1 bg-zinc-800/80 text-amber-400 rounded-md text-[10px] font-mono font-bold border border-zinc-700/60">
+                <Badge variant="amber" size="sm">
                   ★ {repo.stars} stars
-                </span>
+                </Badge>
               </div>
 
-              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition">
+              <h4 className="text-sm font-display font-bold text-forge-white group-hover:text-brand-ember transition">
                 {repo.fullName}
               </h4>
 
-              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-medium">{repo.description}</p>
+              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-sans">{repo.description}</p>
 
-              <div className="flex items-center justify-between pt-3 text-[11px] text-zinc-400 border-t border-zinc-800/80">
-                <span className="font-mono font-bold text-zinc-300">{repo.primaryLanguage}</span>
+              <div className="flex items-center justify-between pt-3 text-[11px] font-mono text-zinc-400 border-t border-quenched-steel/20">
+                <span className="font-mono font-bold text-forge-white">{repo.primaryLanguage}</span>
                 <a
                   href={repo.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1"
+                  className="text-quenched-steel-light hover:text-white font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-brand-ember rounded"
                 >
                   <span>View Repository</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
-            </div>
+            </Card>
           ))}
 
         {/* Web Insights */}
         {(activeTab === 'all' || activeTab === 'web') &&
           data.webInsights.map((web) => (
-            <div
-              key={web.id}
-              className="p-6 bg-[#121218]/80 border border-zinc-800 rounded-2xl space-y-4 hover:border-brand-500/40 transition shadow-lg group"
-            >
+            <Card key={web.id} variant="interactive" className="space-y-4 group">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{web.source}</span>
+                <span className="text-[10px] font-mono font-bold text-quenched-steel-light uppercase tracking-widest">{web.source}</span>
               </div>
 
-              <h4 className="text-sm font-extrabold text-white group-hover:text-brand-400 transition">
+              <h4 className="text-sm font-display font-bold text-forge-white group-hover:text-brand-ember transition">
                 {web.title}
               </h4>
 
-              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-medium">{web.snippet}</p>
+              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed font-sans">{web.snippet}</p>
 
-              <div className="flex items-center justify-end pt-3 text-[11px] border-t border-zinc-800/80">
+              <div className="flex items-center justify-end pt-3 text-[11px] font-mono border-t border-quenched-steel/20">
                 <a
                   href={web.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+                  className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-brand-ember rounded"
                 >
                   <span>Read Full Intel</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
-            </div>
+            </Card>
           ))}
       </div>
     </div>
   );
 }
+

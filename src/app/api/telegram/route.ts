@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { botToken, chatId, message } = body;
+    const effectiveBotToken = botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const effectiveChatId = chatId || process.env.TELEGRAM_CHAT_ID;
 
-    if (!botToken || !chatId) {
+    if (!effectiveBotToken || !effectiveChatId) {
       return NextResponse.json({
         success: true,
         delivered: false,
@@ -13,12 +18,12 @@ export async function POST(req: Request) {
       });
     }
 
-    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const telegramUrl = `https://api.telegram.org/bot${effectiveBotToken}/sendMessage`;
     const response = await fetch(telegramUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: chatId,
+        chat_id: effectiveChatId,
         text: message || '🤖 IdeaForge AI Mentor: Milestone 1 checklist ready for review!',
         parse_mode: 'Markdown',
       }),

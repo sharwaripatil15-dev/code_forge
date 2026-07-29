@@ -96,6 +96,28 @@ export const MOCK_DATASETS: Record<string, DeepSearchState> = {
         approachFamily: 'Traditional Static Analysis'
       }
     ],
+    patents: [
+      {
+        id: 'pat-US11853401B2',
+        patentNumber: 'US11853401B2',
+        title: 'System and Method for Automated Code Safety Invariant Proving via Multi-Modal Parsing',
+        abstract: 'Computer-implemented system for analyzing pull request diffs and evaluating security AST Invariants prior to code merge into production repositories.',
+        assignee: 'Security Automation Technologies Inc.',
+        url: 'https://patents.google.com/patent/US11853401B2/en',
+        publicationDate: '2023-12-26',
+        relevanceScore: 94
+      },
+      {
+        id: 'pat-EP3982104A1',
+        patentNumber: 'EP3982104A1',
+        title: 'Deterministic LLM Patch Verification Engine for Automated Pull Request Review',
+        abstract: 'Methods and apparatus for running WASM Tree-Sitter AST validation on machine-generated code patches before committing changes to CI/CD pipelines.',
+        assignee: 'European Software Research AG',
+        url: 'https://patents.google.com/patent/EP3982104A1/en',
+        publicationDate: '2024-01-18',
+        relevanceScore: 89
+      }
+    ],
     webInsights: [
       {
         id: 'w1',
@@ -215,17 +237,111 @@ export const MOCK_DATASETS: Record<string, DeepSearchState> = {
         { category: 'AST Parsing', chosen: 'web-tree-sitter (WASM)', rationale: 'Runs directly in Node/Vercel edge environment without installing native binaries.', alternatives: ['Babel Parser', 'ESTree'] },
         { category: 'Database & Embeddings', chosen: 'Supabase Postgres + pgvector', rationale: 'Single service for relational user data and vector embeddings.', alternatives: ['Pinecone', 'ChromaDB'] }
       ],
+      apisAndDatasets: [
+        {
+          name: 'GitHub REST & GraphQL API v4',
+          type: 'Third-Party API',
+          description: 'Accesses pull request diffs, code commits, branch trees, and posts inline review comments directly on GitHub PR lines.',
+          useCase: 'Primary input/output interface for fetching PR diffs and posting verified security suggestions.',
+          accessUrl: 'https://docs.github.com/en/rest',
+          licenseOrTier: 'Free (5,000 req/hr authenticated)',
+        },
+        {
+          name: 'web-tree-sitter WASM Engine',
+          type: 'SDK / Library',
+          description: 'Client and server-side WebAssembly port of Tree-Sitter for incremental AST parsing across 40+ programming languages.',
+          useCase: 'Extracts exact function boundaries and syntax nodes before sending prompt context to Gemini.',
+          accessUrl: 'https://github.com/tree-sitter/tree-sitter',
+          licenseOrTier: 'Open Source (MIT License)',
+        },
+        {
+          name: 'SWE-Bench Benchmark Dataset',
+          type: 'Public Dataset',
+          description: 'Evaluation benchmark dataset containing 2,294 real software engineering problems extracted from GitHub issues and PRs.',
+          useCase: 'Benchmarking patch accuracy and self-correction performance against existing AI coding agents.',
+          accessUrl: 'https://www.swebench.com',
+          licenseOrTier: 'Open Data (CC BY 4.0)',
+        },
+        {
+          name: 'OSV.dev Vulnerability API',
+          type: 'Third-Party API',
+          description: 'Distributed open-source vulnerability database API providing precise package and commit vulnerability signatures.',
+          useCase: 'Queries CVE advisories and zero-day signatures for identified project dependencies.',
+          accessUrl: 'https://osv.dev',
+          licenseOrTier: 'Free Public REST API',
+        },
+      ],
+      timeline: {
+        totalEstimatedWeeks: 4,
+        totalEstimatedHours: 64,
+        criticalPath: 'Tree-Sitter WASM Diff Chunker → Gemini Patch Reasoning → Sub-process Syntax Test Pass',
+        phases: [
+          { phaseName: 'Phase 1: Foundations & AST Engine', duration: 'Week 1 (16h)', goal: 'Build deterministic AST parser & diff chunker' },
+          { phaseName: 'Phase 2: Gemini Synthesis & Guardrail', duration: 'Week 2 (18h)', goal: 'Implement patch generation & AST sanity validator' },
+          { phaseName: 'Phase 3: GitHub PR Bot & Telegram Agent', duration: 'Week 3 (15h)', goal: 'Connect live webhooks & PR inline commenting' },
+          { phaseName: 'Phase 4: Benchmarking & Deployment', duration: 'Week 4 (15h)', goal: 'Run SWE-Bench evaluation & deploy to Vercel' },
+        ],
+      },
       milestones: [
-        { week: 1, title: 'Phase 1: AST Extraction & Diff Parser', duration: '3 Days', deliverables: ['GitHub Action trigger setup', 'WASM Tree-Sitter integration extracting diff context'], potentialRisk: 'Large multi-file diffs over-tokenizing request payload' },
-        { week: 2, title: 'Phase 2: Gemini Security Prompting & Guardrail', duration: '4 Days', deliverables: ['Gemini 1.5 Flash prompt pipeline', 'AST sanity checker verifying patch validity'], potentialRisk: 'LLM returning Markdown formatting surrounding code blocks' },
-        { week: 3, title: 'Phase 3: Telegram Notification Bot & Live PR Comments', duration: '3 Days', deliverables: ['Telegram bot webhook alert for high-risk vulnerabilities', 'GitHub inline comment poster'], potentialRisk: 'Telegram bot API rate limits on fast commits' },
-        { week: 4, title: 'Phase 4: Dashboard, Benchmarking & Public Demo', duration: '4 Days', deliverables: ['IdeaForge workspace dashboard with analytics', 'Public GitHub repo demonstration'], potentialRisk: 'Vercel serverless function timeout on 30s limit' }
+        {
+          week: 1,
+          title: 'Phase 1: AST Extraction & Diff Parser Engine',
+          duration: '3 Days (16 Hours)',
+          actionableSteps: [
+            'Task 1.1: Initialize web-tree-sitter WASM bindings inside Node/Edge runtime',
+            'Task 1.2: Build Git diff chunker to extract modified AST nodes & scope',
+            'Task 1.3: Unit test multi-file AST symbol parsing across TypeScript and Python',
+          ],
+          deliverables: ['GitHub Action trigger setup', 'WASM Tree-Sitter integration extracting diff context'],
+          potentialRisk: 'Large multi-file diffs over-tokenizing request payload',
+        },
+        {
+          week: 2,
+          title: 'Phase 2: Gemini Security Prompting & Guardrail',
+          duration: '4 Days (18 Hours)',
+          actionableSteps: [
+            'Task 2.1: Write system prompt steering Gemini 1.5 Flash for code security auditing',
+            'Task 2.2: Integrate OSV.dev vulnerability lookup for dependency CVE checks',
+            'Task 2.3: Build AST sanity validator to verify generated patches compile cleanly',
+          ],
+          deliverables: ['Gemini 1.5 Flash prompt pipeline', 'AST sanity checker verifying patch validity'],
+          potentialRisk: 'LLM returning Markdown formatting surrounding code blocks',
+        },
+        {
+          week: 3,
+          title: 'Phase 3: Telegram Notification Bot & Live PR Comments',
+          duration: '3 Days (15 Hours)',
+          actionableSteps: [
+            'Task 3.1: Register Telegram Bot API webhook listener for critical alert dispatch',
+            'Task 3.2: Format markdown review comments with inline code diff suggestions',
+            'Task 3.3: Handle GitHub pull_request webhook signatures & security headers',
+          ],
+          deliverables: ['Telegram bot webhook alert for high-risk vulnerabilities', 'GitHub inline comment poster'],
+          potentialRisk: 'Telegram bot API rate limits on fast commits',
+        },
+        {
+          week: 4,
+          title: 'Phase 4: Dashboard, Benchmarking & Public Demo',
+          duration: '4 Days (15 Hours)',
+          actionableSteps: [
+            'Task 4.1: Run benchmark accuracy evaluation on SWE-Bench sample subset',
+            'Task 4.2: Deploy serverless webhook worker & dashboard to Vercel',
+            'Task 4.3: Export complete documentation & starter GitHub repo',
+          ],
+          deliverables: ['IdeaForge workspace dashboard with analytics', 'Public GitHub repo demonstration'],
+          potentialRisk: 'Vercel serverless function timeout on 30s limit',
+        },
       ],
       scaffoldFiles: [
         {
           filePath: 'README.md',
           description: 'Project documentation and quickstart instructions',
-          content: `# GuardRail AI — Deterministic Code Review Agent\n\n> Research & Scaffolded by IdeaForge Copilot\n\nGuardRail AI is an open-source GitHub Action agent that eliminates false-positive code review noise using WASM Tree-Sitter AST validation.\n\n## Quickstart\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n\n## Architecture\n- **AST Engine**: WASM Web-Tree-Sitter\n- **LLM Engine**: Gemini 1.5 Flash\n- **Alerts**: Telegram Bot Agent\n`
+          content: `# GuardRail AI — Deterministic Code Review Agent\n\n> Research & Scaffolded by IdeaForge Copilot\n\nGuardRail AI is an open-source GitHub Action agent that eliminates false-positive code review noise using WASM Tree-Sitter AST validation.\n\n## Quickstart\n\`\`\`bash\nnpm install\nnpm run dev\n\`\`\`\n\n## Architecture\n- **AST Engine**: WASM Web-Tree-Sitter\n- **LLM Engine**: Gemini 1.5 Flash\n- **Alerts**: Telegram Bot Agent\n\n## Required APIs & Datasets\n- **GitHub REST API v4**: Pull request diff ingestion and inline commenting\n- **web-tree-sitter WASM**: Local syntax AST tree parsing\n- **OSV.dev API**: Open-source vulnerability signature lookup\n- **SWE-Bench Dataset**: Benchmark test evaluation\n`
+        },
+        {
+          filePath: 'docs/API_SPECIFICATION.md',
+          description: 'Complete API endpoints & payload specifications',
+          content: `# GuardRail AI API Specification\n\n## Endpoints\n\n### 1. POST /api/review\nHandles incoming GitHub pull_request webhooks.\n\n**Headers:**\n- \`X-GitHub-Event\`: \`pull_request\`\n- \`Content-Type\`: \`application/json\`\n\n**Response:**\n\`\`\`json\n{\n  "status": "success",\n  "diffFilesParsed": 3,\n  "vulnerabilitiesFound": 0,\n  "patchStatus": "VERIFIED_CLEAN"\n}\n\`\`\`\n\n### 2. POST /api/telegram/notify\nDispatches critical vulnerability alerts to developer Telegram chat.\n`
         },
         {
           filePath: 'src/guardrail/astParser.ts',
@@ -235,7 +351,7 @@ export const MOCK_DATASETS: Record<string, DeepSearchState> = {
         {
           filePath: 'src/app/api/review/route.ts',
           description: 'Next.js API route handling GitHub PR webhook payload',
-          content: `import { NextResponse } from 'next/server';\n\nexport async function POST(req: Request) {\n  const payload = await req.json();\n  // Run AST AST sanity pass + Gemini reasoning\n  return NextResponse.json({ status: 'success', summary: 'Clean review posted' });\n}\n`
+          content: `import { NextResponse } from 'next/server';\n\nexport async function POST(req: Request) {\n  const payload = await req.json();\n  // Run AST sanity pass + Gemini reasoning\n  return NextResponse.json({ status: 'success', summary: 'Clean review posted' });\n}\n`
         }
       ],
       telegramMentorPrompt: '🤖 *IdeaForge AI Mentor*: Hey there! Your GuardRail AI blueprint is generated. Have you wired up your WASM Tree-Sitter parser yet? Type your question here or reply to check off Milestone 1!'

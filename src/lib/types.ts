@@ -98,12 +98,29 @@ export interface TechStackRecommendation {
   alternatives: string[];
 }
 
+export interface RecommendedApiOrDataset {
+  name: string;
+  type: 'Third-Party API' | 'Public Dataset' | 'SDK / Library' | 'Protocol Standard';
+  description: string;
+  useCase: string;
+  accessUrl: string;
+  licenseOrTier: string;
+}
+
 export interface ProjectMilestone {
   week: number;
   title: string;
   duration: string;
+  actionableSteps: string[];
   deliverables: string[];
   potentialRisk: string;
+}
+
+export interface ProjectTimeline {
+  totalEstimatedWeeks: number;
+  totalEstimatedHours: number;
+  criticalPath: string;
+  phases: { phaseName: string; duration: string; goal: string }[];
 }
 
 export interface ScaffoldFile {
@@ -120,15 +137,29 @@ export interface ProjectBlueprint {
   uniqueValueProposition: string;
   architectureNodes: ArchitectureNode[];
   techStack: TechStackRecommendation[];
+  apisAndDatasets: RecommendedApiOrDataset[];
+  timeline: ProjectTimeline;
   milestones: ProjectMilestone[];
   scaffoldFiles: ScaffoldFile[];
   telegramMentorPrompt: string;
+}
+
+export interface PatentRecord {
+  id: string;
+  patentNumber: string;
+  title: string;
+  abstract: string;
+  assignee: string;
+  url: string;
+  publicationDate: string;
+  relevanceScore: number;
 }
 
 export interface DeepSearchState {
   input: IdeaInputData;
   papers: ResearchPaper[];
   repos: GitHubRepo[];
+  patents: PatentRecord[];
   webInsights: WebInsight[];
   clusters: ApproachCluster[];
   metrics: GapMetrics;
@@ -145,3 +176,4 @@ export interface ApiKeys {
   telegramBotToken?: string;
   telegramChatId?: string;
 }
+
