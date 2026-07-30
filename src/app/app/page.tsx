@@ -194,7 +194,7 @@ export default function WorkspacePage() {
     setCurrentStep('blueprint');
   };
 
-  const handleUpdateMilestones = (milestoneWeek: number, completed: boolean) => {
+  const handleUpdateMilestones = useCallback((milestoneWeek: number, completed: boolean) => {
     setSearchData((prev) => {
       const updatedMilestones = prev.blueprint.milestones.map((m) =>
         m.week === milestoneWeek ? { ...m, completed } : m
@@ -207,14 +207,17 @@ export default function WorkspacePage() {
         },
       };
     });
-  };
+  }, []);
 
-  const handleUpdateMentorMessages = (msgs: Array<{ sender: 'bot' | 'user'; text: string; time: string }>) => {
-    setSearchData((prev) => ({
-      ...prev,
-      mentorChatHistory: msgs,
-    }));
-  };
+  const handleUpdateMentorMessages = useCallback((msgs: Array<{ sender: 'bot' | 'user'; text: string; time: string }>) => {
+    setSearchData((prev) => {
+      if (JSON.stringify(prev.mentorChatHistory) === JSON.stringify(msgs)) return prev;
+      return {
+        ...prev,
+        mentorChatHistory: msgs,
+      };
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-forge-black text-forge-white flex flex-col selection:bg-brand-ember selection:text-white font-sans relative">

@@ -7,10 +7,7 @@ export const revalidate = 0;
 
 // GET /api/telegram/webhook: Helper endpoint to register or check Vercel Webhook status
 export async function GET(req: Request) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!botToken) {
-    return NextResponse.json({ success: false, error: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 400 });
-  }
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8940073418:AAGaCkmQ7cvUTPKDucMXe77zPPlq8yfj0CA';
 
   const { searchParams } = new URL(req.url);
   const targetUrl = searchParams.get('setWebhook');
@@ -38,10 +35,7 @@ export async function GET(req: Request) {
 
 // POST /api/telegram/webhook: Serverless Telegram Push Webhook Receiver (Vercel-Native)
 export async function POST(req: Request) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!botToken) {
-    return NextResponse.json({ success: false, error: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 400 });
-  }
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8940073418:AAGaCkmQ7cvUTPKDucMXe77zPPlq8yfj0CA';
 
   try {
     const update = await req.json();

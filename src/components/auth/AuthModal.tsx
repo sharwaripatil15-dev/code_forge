@@ -18,6 +18,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -42,9 +43,40 @@ export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: 
   };
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(`/connect ${session.telegramConnectCode}`);
+    navigator.clipboard.writeText(`/start ${session.telegramConnectCode}`);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleVerifyTelegram = async () => {
+    setIsVerifying(true);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/telegram/verify');
+      const data = await res.json();
+      if (data.success) {
+        if (data.linkedUsers && data.linkedUsers.length > 0) {
+          setNotice({
+            type: 'success',
+            text: `🎉 Telegram chat verified & linked successfully for ${data.linkedUsers.join(', ')}!`,
+          });
+        } else {
+          setNotice({
+            type: 'success',
+            text: `⚡ Telegram link checked! Send "/start ${session.telegramConnectCode}" to @Loopideaforgebot in Telegram, then click Verify Link.`,
+          });
+        }
+      } else {
+        setNotice({
+          type: 'error',
+          text: data.error || 'Telegram Bot Token not configured or verify check failed.',
+        });
+      }
+    } catch (err: any) {
+      setNotice({ type: 'error', text: err.message || 'Failed to verify Telegram status.' });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -154,15 +186,27 @@ export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: 
                 /start {session.telegramConnectCode}
               </code>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyCode}
-                leftIcon={copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                className="h-7 text-[11px] font-mono px-2"
-              >
-                {copiedCode ? 'Copied' : 'Copy Code'}
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyCode}
+                  leftIcon={copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  className="h-7 text-[11px] font-mono px-2"
+                >
+                  {copiedCode ? 'Copied' : 'Copy Code'}
+                </Button>
+
+                <Button
+                  variant="quenched"
+                  size="sm"
+                  isLoading={isVerifying}
+                  onClick={handleVerifyTelegram}
+                  className="h-7 text-[11px] font-mono px-2"
+                >
+                  Verify Link
+                </Button>
+              </div>
             </div>
           </div>
         </div>

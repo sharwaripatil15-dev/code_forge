@@ -24,52 +24,65 @@ export default function MentorStep({
   initialMessages,
   onUpdateMessages,
 }: MentorStepProps) {
+  // Initialize messages cleanly including milestone reminder if not already present
   const [messages, setMessages] = useState<Array<{ sender: 'bot' | 'user'; text: string; time: string }>>(() => {
-    if (initialMessages && initialMessages.length > 0) return initialMessages;
-    return [
-      {
-        sender: 'bot',
-        text: blueprint.telegramMentorPrompt || `🤖 *IdeaForge AI Mentor*: Welcome! Your blueprint for "${blueprint.title}" is ready. Ask me any question about your architecture, tech stack, or milestones!`,
-        time: '10:00 AM',
-      },
-    ];
+    let baseMsgs: Array<{ sender: 'bot' | 'user'; text: string; time: string }> = [];
+    if (initialMessages && initialMessages.length > 0) {
+      baseMsgs = [...initialMessages];
+    } else {
+      baseMsgs = [
+        {
+          sender: 'bot',
+          text: blueprint.telegramMentorPrompt || `🤖 *IdeaForge AI Mentor*: Welcome! Your blueprint for "${blueprint.title}" is ready. Ask me any question about your architecture, tech stack, or milestones!`,
+          time: '10:00 AM',
+        },
+      ];
+    }
+
+    const activeMilestone = blueprint.milestones?.find((m) => !m.completed) || blueprint.milestones?.[0];
+    if (activeMilestone) {
+      const reminderText = `⚠️ *Milestone Reminder*: Sprint ${activeMilestone.week} (${activeMilestone.title}) is currently due! Deliverables: ${activeMilestone.deliverables.join(', ')}`;
+      if (!baseMsgs.some((m) => m.text.includes('Milestone Reminder'))) {
+        baseMsgs.push({
+          sender: 'bot',
+          text: reminderText,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        });
+      }
+    }
+    return baseMsgs;
   });
+
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [pushedTelegram, setPushedTelegram] = useState(false);
+  const lastSavedRef = React.useRef<string>(JSON.stringify(messages));
+  const chatBottomRef = React.useRef<HTMLDivElement>(null);
 
+  // Auto scroll chat to bottom smoothly when messages or typing state update
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  // Sync prop updates from parent if changed externally
   useEffect(() => {
     if (initialMessages && initialMessages.length > 0) {
-      setMessages(initialMessages);
+      const propStr = JSON.stringify(initialMessages);
+      if (propStr !== lastSavedRef.current) {
+        lastSavedRef.current = propStr;
+        setMessages(initialMessages);
+      }
     }
   }, [initialMessages]);
 
+  // Sync state updates back to parent without triggering feedback loop
   useEffect(() => {
-    if (onUpdateMessages) {
+    const currentStr = JSON.stringify(messages);
+    if (onUpdateMessages && currentStr !== lastSavedRef.current) {
+      lastSavedRef.current = currentStr;
       onUpdateMessages(messages);
     }
   }, [messages, onUpdateMessages]);
-
-  // Reminders Capability: Automatically send proactive reminder for active due milestone on mount
-  useEffect(() => {
-    const activeMilestone = blueprint.milestones.find((m) => !m.completed) || blueprint.milestones[0];
-    if (activeMilestone) {
-      const reminderText = `⚠️ *Milestone Reminder*: Sprint ${activeMilestone.week} (${activeMilestone.title}) is currently due! Deliverables: ${activeMilestone.deliverables.join(', ')}`;
-      
-      // Add proactive reminder to chat stream
-      setMessages((prev) => {
-        if (prev.some((m) => m.text.includes('Milestone Reminder'))) return prev;
-        return [
-          ...prev,
-          {
-            sender: 'bot',
-            text: reminderText,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ];
-      });
-    }
-  }, [blueprint.milestones]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +140,7 @@ export default function MentorStep({
   const handleTriggerLiveTelegramPush = async () => {
     setPushedTelegram(true);
     const activeMilestone = blueprint.milestones.find((m) => !m.completed) || blueprint.milestones[0];
-    const message = `🤖 *IdeaForge AI Mentor Alert*\nProject: ${blueprint.title}\n\n⚠️ Sprint ${activeMilestone.week}: ${activeMilestone.title} is currently due!\n- **Deliverables**: ${activeMilestone.deliverables.join(', ')}\n- **Risk**: ${activeMilestone.potentialRisk}`;
+    const message = `🤖 *IdeaForge AI Mentor Alert*\nProject: ${blueprint.title}\n\n⚠️ Sprint ${activeMilestone.week}: ${activeMilestone.title} is currently due!\n- *Deliverables*: ${activeMilestone.deliverables.join(', ')}\n- *Risk*: ${activeMilestone.potentialRisk}`;
 
     let email = 'builder@ideaforge.ai';
     if (typeof window !== 'undefined') {
@@ -141,7 +154,7 @@ export default function MentorStep({
     }
 
     try {
-      await fetch('/api/telegram', {
+      const res = await fetch('/api/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,8 +162,36 @@ export default function MentorStep({
           message,
         }),
       });
-    } catch (e) {
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server HTTP error ${res.status}`);
+      }
+
+      const data = await res.json();
+      
+      const pushNoticeText = data.delivered
+        ? `📲 *Live Telegram Alert Sent*: Alert pushed directly to your linked Telegram chat!`
+        : `📲 *Telegram Push Status*: ${data.notice || 'No active Telegram chat ID found. Please open t.me/Loopideaforgebot in Telegram and tap Start or send any message to receive live alerts.'}`;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: pushNoticeText,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } catch (e: any) {
       console.warn('Telegram push warning:', e);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `⚠️ *Telegram Push Failed*: ${e.message || 'Network connection error'}. Make sure your local Next.js dev server (npm run dev) is running!`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
     }
 
     setTimeout(() => setPushedTelegram(false), 3000);
@@ -207,7 +248,7 @@ export default function MentorStep({
         <div className="flex-1 p-4 sm:p-8 space-y-6 overflow-y-auto">
           {messages.map((msg, idx) => (
             <div
-              key={idx}
+              key={`${msg.sender}-${idx}-${msg.time}`}
               className={`flex items-start gap-2.5 sm:gap-3.5 ${
                 msg.sender === 'user' ? 'flex-row-reverse' : ''
               }`}
@@ -229,7 +270,15 @@ export default function MentorStep({
                     : 'bg-forge-surface-light border border-quenched-steel/25 text-zinc-200 rounded-tl-none shadow-sm'
                 }`}
               >
-                <div className="whitespace-pre-line break-words">{msg.text}</div>
+                <div className="whitespace-pre-line break-words">
+                  {msg.text.split(/(\*[^*]+\*|\*\*[^*]+\*\*)/g).map((part, i) => {
+                    if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('*') && part.endsWith('*'))) {
+                      const clean = part.replace(/\*/g, '');
+                      return <strong key={i} className="font-bold text-forge-white">{clean}</strong>;
+                    }
+                    return part;
+                  })}
+                </div>
                 <div
                   className={`text-[10px] font-mono ${
                     msg.sender === 'user' ? 'text-white/80 text-right' : 'text-zinc-500'
@@ -247,6 +296,7 @@ export default function MentorStep({
               <span>AI Mentor is thinking & analyzing your blueprint...</span>
             </div>
           )}
+          <div ref={chatBottomRef} />
         </div>
 
         {/* Input Form */}

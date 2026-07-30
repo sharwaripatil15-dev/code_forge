@@ -42,6 +42,29 @@ export default function Navbar({
 }: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
 
+  const desktopNavRef = React.useRef<HTMLElement>(null);
+  const mobileNavRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const desktopEl = desktopNavRef.current;
+    const mobileEl = mobileNavRef.current;
+
+    const handleNonPassiveWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).scrollLeft += e.deltaY;
+      }
+    };
+
+    if (desktopEl) desktopEl.addEventListener('wheel', handleNonPassiveWheel, { passive: false });
+    if (mobileEl) mobileEl.addEventListener('wheel', handleNonPassiveWheel, { passive: false });
+
+    return () => {
+      if (desktopEl) desktopEl.removeEventListener('wheel', handleNonPassiveWheel);
+      if (mobileEl) mobileEl.removeEventListener('wheel', handleNonPassiveWheel);
+    };
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-quenched-steel/20 bg-forge-black/95 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +73,7 @@ export default function Navbar({
           {/* Brand Logo */}
           <div 
             onClick={() => onSelectStep('input')}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+            className="flex items-center gap-2.5 cursor-pointer group shrink-0 pr-2 select-none"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && onSelectStep('input')}
@@ -58,7 +81,7 @@ export default function Navbar({
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-blueprint bg-gradient-to-br from-brand-ember via-amber-molten to-quenched-steel flex items-center justify-center text-white shadow-md shadow-brand-ember/20 group-hover:scale-105 transition-transform border border-brand-ember/40 shrink-0">
               <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
             </div>
-            <div className="min-w-0">
+            <div className="shrink-0">
               <div className="flex items-center gap-1 font-display font-bold text-lg sm:text-xl tracking-tight text-forge-white uppercase leading-none">
                 <span>IDEA</span>
                 <span className="text-brand-ember">FORGE</span>
@@ -69,9 +92,12 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Desktop 5-Step Stepper Bar */}
-          <nav className="hidden lg:flex items-center bg-forge-surface/80 border border-quenched-steel/25 p-1.5 rounded-blueprint shadow-inner">
-            <div className="flex items-center gap-1.5">
+          {/* Desktop 5-Step Stepper Bar with Side Scroll & Isolated Horizontal Mouse Wheel Scroll */}
+          <nav
+            ref={desktopNavRef}
+            className="hidden lg:flex items-center bg-forge-surface/80 border border-quenched-steel/25 p-1.5 rounded-blueprint shadow-inner overflow-x-auto max-w-full min-w-0 space-x-1.5 scrollbar-thin scroll-smooth"
+          >
+            <div className="flex items-center gap-1.5 shrink-0">
               {STEPS.map((step) => {
                 const Icon = step.icon;
                 const stepIndex = STEP_ORDER.indexOf(step.id);
@@ -105,43 +131,45 @@ export default function Navbar({
               })}
             </div>
 
-            <div className="h-5 w-px bg-quenched-steel/30 mx-2.5 shrink-0" />
+            <div className="h-5 w-px bg-quenched-steel/30 mx-2 shrink-0" />
 
-            {/* Command K Trigger */}
-            <button
-              onClick={onOpenCommandPalette}
-              className="h-9 px-3 inline-flex items-center gap-2 rounded-lg bg-forge-surface-light border border-quenched-steel/30 text-xs font-mono text-zinc-300 hover:text-white hover:border-brand-ember/50 transition min-h-[44px]"
-            >
-              <Command className="w-3.5 h-3.5 text-brand-ember" />
-              <span className="font-bold">Cmd+K</span>
-            </button>
-
-            {/* Theme Switcher Toggle */}
-            {onToggleTheme && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Command K Trigger */}
               <button
-                onClick={onToggleTheme}
-                className="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg bg-forge-surface-light border border-quenched-steel/30 text-xs font-mono text-zinc-300 hover:text-white hover:border-brand-ember/50 transition min-h-[44px]"
-                title="Toggle Theme"
+                onClick={onOpenCommandPalette}
+                className="h-9 px-3 inline-flex items-center gap-2 rounded-lg bg-forge-surface-light border border-quenched-steel/30 text-xs font-mono text-zinc-300 hover:text-white hover:border-brand-ember/50 transition min-h-[44px] shrink-0"
               >
-                <Palette className="w-3.5 h-3.5 text-amber-molten" />
-                <span className="capitalize text-[11px] font-bold">{activeTheme || 'Forge'}</span>
+                <Command className="w-3.5 h-3.5 text-brand-ember" />
+                <span className="font-bold">Cmd+K</span>
               </button>
-            )}
 
-            {/* Auth Trigger */}
-            {onOpenAuthModal && (
-              <button
-                onClick={onOpenAuthModal}
-                className={`h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-xs font-mono transition min-h-[44px] ${
-                  isLoggedIn
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold'
-                    : 'bg-brand-ember/15 border-brand-ember/30 text-brand-ember hover:bg-brand-ember/25'
-                }`}
-              >
-                <User className="w-3.5 h-3.5" />
-                <span className="truncate max-w-[110px]">{userEmail ? userEmail.split('@')[0] : 'Magic Link'}</span>
-              </button>
-            )}
+              {/* Theme Switcher Toggle */}
+              {onToggleTheme && (
+                <button
+                  onClick={onToggleTheme}
+                  className="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg bg-forge-surface-light border border-quenched-steel/30 text-xs font-mono text-zinc-300 hover:text-white hover:border-brand-ember/50 transition min-h-[44px] shrink-0"
+                  title="Toggle Theme"
+                >
+                  <Palette className="w-3.5 h-3.5 text-amber-molten" />
+                  <span className="capitalize text-[11px] font-bold">{activeTheme || 'Forge'}</span>
+                </button>
+              )}
+
+              {/* Auth Trigger */}
+              {onOpenAuthModal && (
+                <button
+                  onClick={onOpenAuthModal}
+                  className={`h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-xs font-mono transition min-h-[44px] shrink-0 ${
+                    isLoggedIn
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold'
+                      : 'bg-brand-ember/15 border-brand-ember/30 text-brand-ember hover:bg-brand-ember/25'
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span className="truncate max-w-[110px]">{userEmail ? userEmail.split('@')[0] : 'Magic Link'}</span>
+                </button>
+              )}
+            </div>
           </nav>
 
           {/* Right Action Controls for Mobile/Tablet */}
@@ -177,7 +205,7 @@ export default function Navbar({
         </div>
 
         {/* Mobile / Tablet Touch Horizontal Stepper Strip */}
-        <div className="lg:hidden py-2 border-t border-quenched-steel/15 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 px-1">
+        <div ref={mobileNavRef} className="lg:hidden py-2 border-t border-quenched-steel/15 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 px-1">
           {STEPS.map((step) => {
             const Icon = step.icon;
             const stepIndex = STEP_ORDER.indexOf(step.id);
