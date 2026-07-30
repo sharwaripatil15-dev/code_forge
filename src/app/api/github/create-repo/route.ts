@@ -9,15 +9,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const blueprint: ProjectBlueprint = body.blueprint;
-    const clientToken = body.githubToken;
-    const token = clientToken || process.env.GITHUB_TOKEN;
+    const token = process.env.GITHUB_TOKEN;
 
     if (!token) {
       return NextResponse.json(
         {
           success: false,
           error: 'GitHub Token required',
-          notice: 'Please add your GITHUB_TOKEN in .env.local or API Keys settings to create real repositories.',
+          notice: 'Please add your GITHUB_TOKEN in .env.local on the server to create real repositories.',
         },
         { status: 400 }
       );

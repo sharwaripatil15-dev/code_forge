@@ -4,7 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+[data-theme="forge"] {
   --font-space-grotesk: 'Space Grotesk', sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', sans-serif;
   --font-jetbrains: 'JetBrains Mono', monospace;
@@ -15,7 +16,30 @@
   --color-forge-white: #f3f2ee;
   --color-brand-ember: #ff3b00;
   --color-quenched-steel: #4a6274;
+  --color-quenched-steel-light: #627d92;
   --color-forge-amber: #ff9500;
+}
+
+[data-theme="blueprint"] {
+  --color-forge-black: #0b131e;
+  --color-forge-surface: #111d2e;
+  --color-forge-surface-light: #192a40;
+  --color-forge-white: #f0f9ff;
+  --color-brand-ember: #0ea5e9;
+  --color-quenched-steel: #38bdf8;
+  --color-quenched-steel-light: #7dd3fc;
+  --color-forge-amber: #38bdf8;
+}
+
+[data-theme="cyberpunk"] {
+  --color-forge-black: #050508;
+  --color-forge-surface: #120c1f;
+  --color-forge-surface-light: #1b132c;
+  --color-forge-white: #faf5ff;
+  --color-brand-ember: #f43f5e;
+  --color-quenched-steel: #a855f7;
+  --color-quenched-steel-light: #c084fc;
+  --color-forge-amber: #eab308;
 }
 
 body {
@@ -23,6 +47,7 @@ body {
   background-color: var(--color-forge-black);
   color: var(--color-forge-white);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Blueprint Grid Pattern */

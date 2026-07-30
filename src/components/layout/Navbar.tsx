@@ -4,16 +4,18 @@ import React from 'react';
 import { StepId } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Lightbulb, Search, Network, Swords, Rocket, Key, Layers, Check, Command, Sun, Palette, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, type LucideIcon } from 'lucide-react';
 
 interface NavbarProps {
   currentStep: StepId;
   onSelectStep: (step: StepId) => void;
-  onOpenKeyModal: () => void;
   onOpenCommandPalette: () => void;
+  onOpenAuthModal?: () => void;
   hasInput: boolean;
   activeTheme?: string;
   onToggleTheme?: () => void;
+  userEmail?: string;
+  isLoggedIn?: boolean;
 }
 
 const STEP_ORDER: StepId[] = ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'];
@@ -27,7 +29,17 @@ const STEPS: { id: StepId; label: string; icon: LucideIcon }[] = [
 ];
 
 
-export default function Navbar({ currentStep, onSelectStep, onOpenKeyModal, onOpenCommandPalette, hasInput, activeTheme, onToggleTheme }: NavbarProps) {
+export default function Navbar({
+  currentStep,
+  onSelectStep,
+  onOpenCommandPalette,
+  onOpenAuthModal,
+  hasInput,
+  activeTheme,
+  onToggleTheme,
+  userEmail,
+  isLoggedIn,
+}: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
 
   return (
@@ -116,16 +128,20 @@ export default function Navbar({ currentStep, onSelectStep, onOpenKeyModal, onOp
             </button>
           )}
 
-          {/* Utility Action inside Stepper Bar */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onOpenKeyModal}
-            leftIcon={<Key className="w-3.5 h-3.5 text-brand-ember" strokeWidth={2} />}
-            className="h-9 px-3 text-xs font-mono text-quenched-steel-light hover:text-forge-white"
-          >
-            API Keys
-          </Button>
+          {/* Account / Magic Link Auth Trigger */}
+          {onOpenAuthModal && (
+            <button
+              onClick={onOpenAuthModal}
+              className={`h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-xs font-mono transition ${
+                isLoggedIn
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold'
+                  : 'bg-brand-ember/15 border-brand-ember/30 text-brand-ember hover:bg-brand-ember/25'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span className="truncate max-w-[110px]">{userEmail ? userEmail.split('@')[0] : 'Magic Link'}</span>
+            </button>
+          )}
         </nav>
 
         {/* Action Controls */}
@@ -136,17 +152,6 @@ export default function Navbar({ currentStep, onSelectStep, onOpenKeyModal, onOp
           >
             <Command className="w-4 h-4" />
           </button>
-
-          <div className="lg:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenKeyModal}
-              leftIcon={<Key className="w-3.5 h-3.5 text-brand-ember" strokeWidth={2} />}
-            >
-              <span className="font-mono text-xs">API Keys</span>
-            </Button>
-          </div>
 
           <Badge variant="quenched" pulse className="hidden sm:inline-flex">
             iNSIGHTS Track

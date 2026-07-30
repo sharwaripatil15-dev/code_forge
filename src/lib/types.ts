@@ -114,6 +114,7 @@ export interface ProjectMilestone {
   actionableSteps: string[];
   deliverables: string[];
   potentialRisk: string;
+  completed?: boolean;
 }
 
 export interface ProjectTimeline {
@@ -129,6 +130,30 @@ export interface ScaffoldFile {
   content: string;
 }
 
+export interface DeveloperResource {
+  title: string;
+  category: 'Official Docs' | 'Interactive Tutorial' | 'Video Course' | 'Architecture Guide';
+  description: string;
+  url: string;
+  provider: string;
+}
+
+export interface HuggingFaceDataset {
+  id: string;
+  description: string;
+  downloads: number;
+  likes: number;
+  url: string;
+  tags: string[];
+}
+
+export interface BuildResourcesPanelData {
+  datasets: HuggingFaceDataset[];
+  buildRepos: GitHubRepo[];
+  foundationalPapers: ResearchPaper[];
+  learningResources: DeveloperResource[];
+}
+
 export interface ProjectBlueprint {
   title: string;
   tagline: string;
@@ -142,6 +167,7 @@ export interface ProjectBlueprint {
   milestones: ProjectMilestone[];
   scaffoldFiles: ScaffoldFile[];
   telegramMentorPrompt: string;
+  buildResources?: BuildResourcesPanelData;
 }
 
 export interface PatentRecord {
@@ -155,7 +181,19 @@ export interface PatentRecord {
   relevanceScore: number;
 }
 
+export interface CitationClaim {
+  id: string;
+  claimSentence: string;
+  sourceType: 'arXiv Paper' | 'GitHub Repository' | 'Patent Record' | 'Web Search Grounding';
+  sourceTitle: string;
+  sourceUrl: string;
+  authorOrMeta: string;
+  citationBadge: string;
+}
+
 export interface DeepSearchState {
+  id?: string;
+  created_at?: string;
   input: IdeaInputData;
   papers: ResearchPaper[];
   repos: GitHubRepo[];
@@ -167,6 +205,8 @@ export interface DeepSearchState {
   devilsQuestions: DevilsAdvocateQuestion[];
   blueprint: ProjectBlueprint;
   isLive: boolean;
+  citationClaims?: CitationClaim[];
+  mentorChatHistory?: Array<{ sender: 'bot' | 'user'; text: string; time: string }>;
 }
 
 export interface ApiKeys {

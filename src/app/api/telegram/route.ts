@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getTelegramLinkStatus } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -6,15 +7,26 @@ export const revalidate = 0;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { botToken, chatId, message } = body;
-    const effectiveBotToken = botToken || process.env.TELEGRAM_BOT_TOKEN;
-    const effectiveChatId = chatId || process.env.TELEGRAM_CHAT_ID;
+    const { chatId, email, message } = body;
+    const effectiveBotToken = process.env.TELEGRAM_BOT_TOKEN;
+    let targetChatId = chatId;
 
-    if (!effectiveBotToken || !effectiveChatId) {
+    if (!targetChatId && email) {
+      const status = await getTelegramLinkStatus(email);
+      if (status.isConnected && status.telegramChatId) {
+        targetChatId = status.telegramChatId;
+      }
+    }
+
+    if (!targetChatId) {
+      targetChatId = process.env.TELEGRAM_CHAT_ID;
+    }
+
+    if (!effectiveBotToken || !targetChatId) {
       return NextResponse.json({
         success: true,
         delivered: false,
-        notice: 'Telegram Bot Token or Chat ID not configured. Simulated push notification in browser UI.',
+        notice: 'Telegram Bot Token or linked Chat ID not configured. Simulated push notification in browser UI.',
       });
     }
 
@@ -23,7 +35,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: effectiveChatId,
+        chat_id: targetChatId,
         text: message || '🤖 IdeaForge AI Mentor: Milestone 1 checklist ready for review!',
         parse_mode: 'Markdown',
       }),

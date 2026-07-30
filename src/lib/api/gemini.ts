@@ -529,7 +529,7 @@ export async function runGeminiSynthesis(
   patents: any[],
   apiKey?: string
 ): Promise<DeepSearchState | null> {
-  const geminiKey = apiKey || process.env.GEMINI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
   log.info(`[DeepSearch Gemini] Request received for idea: "${input.idea}"`);
   if (!geminiKey) {

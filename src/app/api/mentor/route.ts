@@ -1,0 +1,93 @@
+import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ProjectBlueprint } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: Request) {
+  try {
+    const { userQuery, blueprint }: { userQuery: string; blueprint: ProjectBlueprint } = await req.json();
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+
+    // Detect completion intent locally as well
+    const lower = userQuery.toLowerCase();
+    let completedMilestoneWeek: number | null = null;
+    
+    if (lower.includes('finished') || lower.includes('done') || lower.includes('completed') || lower.includes('check off')) {
+      if (lower.includes('1') || lower.includes('one') || lower.includes('first')) completedMilestoneWeek = 1;
+      else if (lower.includes('2') || lower.includes('two') || lower.includes('second')) completedMilestoneWeek = 2;
+      else if (lower.includes('3') || lower.includes('three') || lower.includes('third')) completedMilestoneWeek = 3;
+      else if (lower.includes('4') || lower.includes('four') || lower.includes('fourth')) completedMilestoneWeek = 4;
+    }
+
+    if (!geminiKey) {
+      let reply = `Great job on working through your project! For your project "${blueprint.title}", focus on implementing the ${blueprint.architectureNodes[0]?.title || 'core engine'} module first.`;
+      if (completedMilestoneWeek) {
+        reply = `🎉 Milestone ${completedMilestoneWeek} has been marked as COMPLETED! Your project HUB dashboard is updated. ${completedMilestoneWeek < blueprint.milestones.length ? `Next up: Milestone ${completedMilestoneWeek + 1} (${blueprint.milestones[completedMilestoneWeek]?.title}).` : 'All milestones completed! Production ready!'}`;
+      }
+      return NextResponse.json({ success: true, reply, completedMilestoneWeek });
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+      const systemPrompt = `You are IdeaForge AI Mentor, an expert technical lead and startup co-founder guiding the developer through their specific project blueprint.
+
+PROJECT CONTEXT:
+- Title: "${blueprint.title}"
+- Tagline: "${blueprint.tagline}"
+- Problem: "${blueprint.problemStatement}"
+- Unique Value Proposition: "${blueprint.uniqueValueProposition}"
+- System Architecture Nodes: ${JSON.stringify(blueprint.architectureNodes)}
+- Tech Stack & Rationale: ${JSON.stringify(blueprint.techStack)}
+- Recommended APIs & Datasets: ${JSON.stringify(blueprint.apisAndDatasets || [])}
+- Development Timeline: ${JSON.stringify(blueprint.timeline || {})}
+- Milestones: ${JSON.stringify(blueprint.milestones)}
+
+INSTRUCTIONS:
+1. Answer the developer's question directly and concisely, referencing their SPECIFIC architecture, tech stack, APIs, or milestones listed above.
+2. Never give generic filler advice. Reference real technologies from their project context.
+3. If they report finishing a milestone, congratulate them and highlight the next milestone step.
+4. Keep responses concise (2-4 bullet points max) formatted in clean Markdown.
+
+DEVELOPER QUESTION: "${userQuery}"`;
+
+      const result = await model.generateContent(systemPrompt);
+      const response = await result.response;
+      const reply = response.text();
+
+      return NextResponse.json({
+        success: true,
+        reply,
+        completedMilestoneWeek,
+      });
+    } catch (apiErr) {
+      console.warn('Gemini API call failed, generating blueprint-grounded answer:', apiErr);
+      
+      let reply = `🤖 **IdeaForge AI Mentor**: Excellent question regarding **${blueprint.title}**!\n\n`;
+      if (completedMilestoneWeek) {
+        reply = `🎉 **Milestone ${completedMilestoneWeek} Marked COMPLETED!**\nYour Project HUB dashboard and milestone check-ins have been updated. ${completedMilestoneWeek < blueprint.milestones.length ? `Next up: **Milestone ${completedMilestoneWeek + 1} (${blueprint.milestones[completedMilestoneWeek]?.title})**.` : 'All milestones complete! Ready for production deployment!'}`;
+      } else if (lower.includes('stack') || lower.includes('why') || lower.includes('tree-sitter') || lower.includes('wasm')) {
+        const topTech = blueprint.techStack[0] || { chosen: 'Next.js + WASM Engine', rationale: 'high-performance execution' };
+        reply += `We selected **${topTech.chosen}** because ${topTech.rationale}. This directly satisfies your system requirement for ${blueprint.architectureNodes[0]?.title || 'high-throughput parsing'}.\n\n- **API Integration**: Connects cleanly with ${blueprint.apisAndDatasets[0]?.name || 'external APIs'}.\n- **Next Step**: Focus on ${blueprint.milestones[0]?.title || 'Sprint 1'}.`;
+      } else {
+        reply += `For your architecture (${blueprint.architectureNodes.map(n => n.title).join(' → ')}), prioritize **Sprint 1: ${blueprint.milestones[0]?.title || 'Core Engine'}**.\n- Deliverables: ${blueprint.milestones[0]?.deliverables.join(', ')}`;
+      }
+
+      return NextResponse.json({
+        success: true,
+        reply,
+        completedMilestoneWeek,
+      });
+    }
+  } catch (err: any) {
+    console.error('Mentor API top error:', err);
+    return NextResponse.json({
+      success: true,
+      reply: 'I parsed your query against your blueprint. Keep building on your active milestone!',
+      completedMilestoneWeek: null,
+    });
+  }
+}

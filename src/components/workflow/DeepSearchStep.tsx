@@ -130,6 +130,61 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
         </div>
       </div>
 
+      {/* 1:1 CITATION-BACKED RESEARCH SYNTHESES PANEL */}
+      {data.citationClaims && data.citationClaims.length > 0 && (
+        <Card variant="blueprint" className="p-7 space-y-5 shadow-xl border-brand-ember/40 bg-forge-surface/90">
+          <div className="flex items-center justify-between border-b border-quenched-steel/20 pb-3.5">
+            <div>
+              <h3 className="text-lg font-display font-extrabold text-forge-white uppercase tracking-tight flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-blueprint bg-brand-ember/20 border border-brand-ember/40 flex items-center justify-center text-brand-ember text-xs font-bold font-mono">📝</span>
+                <span>Citation-Backed Research Syntheses</span>
+              </h3>
+              <p className="text-xs font-sans text-zinc-400 mt-0.5">
+                Each research claim below is synthesized 1:1 from a single specific verified source with direct citation mapping.
+              </p>
+            </div>
+            <Badge variant="emerald" size="sm">
+              1:1 Claim-to-Source Mapped
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.citationClaims.map((claim) => (
+              <div
+                key={claim.id}
+                className="p-4 rounded-blueprint bg-forge-black/60 border border-quenched-steel/25 space-y-2.5 hover:border-brand-ember/40 transition group"
+              >
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="font-bold text-brand-ember px-2 py-0.5 rounded bg-brand-ember/15 border border-brand-ember/30">
+                    {claim.citationBadge} {claim.sourceType}
+                  </span>
+                  <span className="text-zinc-400 text-[10px]">{claim.authorOrMeta}</span>
+                </div>
+
+                <p className="text-xs font-sans text-zinc-200 leading-relaxed font-medium">
+                  "{claim.claimSentence}"
+                </p>
+
+                <div className="pt-2 border-t border-quenched-steel/15 flex items-center justify-between">
+                  <span className="text-[11px] font-sans font-bold text-forge-white truncate max-w-[260px]">
+                    {claim.sourceTitle}
+                  </span>
+                  <a
+                    href={claim.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-mono font-bold text-brand-ember hover:text-white flex items-center gap-1 shrink-0 ml-2"
+                  >
+                    <span>View Citation Source</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Filter Tabs */}
       <div className="flex items-center justify-between border-b border-quenched-steel/20 pb-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">

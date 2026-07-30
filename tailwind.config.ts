@@ -10,24 +10,24 @@ const config: Config = {
     extend: {
       colors: {
         forge: {
-          black: '#070709',
-          surface: '#121218',
-          'surface-light': '#1a1a22',
-          white: '#f3f2ee',
+          black: 'var(--color-forge-black)',
+          surface: 'var(--color-forge-surface)',
+          'surface-light': 'var(--color-forge-surface-light)',
+          white: 'var(--color-forge-white)',
           border: 'rgba(74, 98, 116, 0.25)',
         },
         brand: {
-          ember: '#ff3b00',
-          'ember-hover': '#e03400',
+          ember: 'var(--color-brand-ember)',
+          'ember-hover': 'var(--color-brand-ember)',
           'ember-glow': 'rgba(255, 59, 0, 0.25)',
         },
         quenched: {
-          steel: '#4a6274',
-          'steel-light': '#627d92',
+          steel: 'var(--color-quenched-steel)',
+          'steel-light': 'var(--color-quenched-steel-light)',
           'steel-glow': 'rgba(74, 98, 116, 0.2)',
         },
         amber: {
-          molten: '#ff9500',
+          molten: 'var(--color-forge-amber)',
         }
       },
       fontFamily: {

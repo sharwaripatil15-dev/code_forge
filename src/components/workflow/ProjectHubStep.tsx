@@ -7,16 +7,16 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import ArchitectureNodeCanvas from '../visualization/ArchitectureNodeCanvas';
 import TeamSkillMatrix from './TeamSkillMatrix';
+import BuildResourcesPanel from '../visualization/BuildResourcesPanel';
 import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ProjectHubStepProps {
   blueprint: ProjectBlueprint;
   onOpenTelegramMentor: () => void;
-  githubToken?: string;
 }
 
-export default function ProjectHubStep({ blueprint, onOpenTelegramMentor, githubToken }: ProjectHubStepProps) {
+export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: ProjectHubStepProps) {
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
   const [selectedScaffold, setSelectedScaffold] = useState(0);
   const [isCreatingRepo, setIsCreatingRepo] = useState(false);
@@ -51,7 +51,7 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor, github
       const response = await fetch('/api/github/create-repo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blueprint, githubToken }),
+        body: JSON.stringify({ blueprint }),
       });
 
       const data = await response.json();
@@ -288,6 +288,11 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor, github
                     {m.week}
                   </span>
                   <h4 className="text-sm font-display font-bold text-forge-white">{m.title}</h4>
+                  {m.completed && (
+                    <Badge variant="emerald" size="sm">
+                      ✓ COMPLETED
+                    </Badge>
+                  )}
                 </div>
                 <span className="text-xs font-mono font-bold text-quenched-steel-light">{m.duration}</span>
               </div>
@@ -403,6 +408,12 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor, github
           </div>
         </div>
       </Card>
+
+      {/* SECTION 7: Build With This - Purpose-Built Resources & Datasets Panel */}
+      <BuildResourcesPanel
+        resources={blueprint.buildResources}
+        projectTitle={blueprint.title}
+      />
     </div>
   );
 }

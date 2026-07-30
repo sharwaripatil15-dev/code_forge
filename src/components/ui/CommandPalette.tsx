@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { StepId } from '@/lib/types';
-import { Search, Rocket, Swords, Send, GitBranch, Key, X, Layers, Compass, Code, Terminal } from 'lucide-react';
+import { Search, Rocket, Swords, Send, GitBranch, X, Layers, Compass, Code, Terminal } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectStep: (step: StepId) => void;
-  onOpenKeyModal: () => void;
   onCreateRepo?: () => void;
   onLaunchMentor?: () => void;
 }
@@ -17,7 +16,6 @@ export function CommandPalette({
   isOpen,
   onClose,
   onSelectStep,
-  onOpenKeyModal,
   onCreateRepo,
   onLaunchMentor,
 }: CommandPaletteProps) {
@@ -96,14 +94,6 @@ export function CommandPalette({
       icon: <Send className="w-4 h-4 text-emerald-400" />,
       shortcut: 'Ctrl+Shift+T',
       run: () => { if (onLaunchMentor) onLaunchMentor(); onClose(); },
-    },
-    {
-      id: 'api-keys',
-      title: 'Configure API Keys (.env / Gemini / GitHub)',
-      category: 'Settings & Security',
-      icon: <Key className="w-4 h-4 text-amber-molten" />,
-      shortcut: 'Ctrl+K',
-      run: () => { onOpenKeyModal(); onClose(); },
     },
   ];
 

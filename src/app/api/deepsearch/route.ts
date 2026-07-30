@@ -5,6 +5,11 @@ import { fetchGooglePatents } from '@/lib/api/patents';
 import { runGeminiSynthesis, generateDynamicFallbackState } from '@/lib/api/gemini';
 import { IdeaInputData } from '@/lib/types';
 import { log } from '@/lib/logger';
+import { fetchHuggingFaceDatasets } from '@/lib/api/datasets';
+import { fetchFoundationalPapers } from '@/lib/api/arxiv';
+import { fetchBuildResourcesGitHubRepos } from '@/lib/api/github';
+import { fetchLearningResources } from '@/lib/api/resources';
+import { generateCitationClaims } from '@/lib/api/citations';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,52 +21,63 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const input: IdeaInputData = body.input;
-    const clientKeys = body.apiKeys || {};
-    const githubToken = clientKeys.githubToken || process.env.GITHUB_TOKEN;
-    const geminiKey = clientKeys.geminiKey || process.env.GEMINI_API_KEY;
+    const githubToken = process.env.GITHUB_TOKEN;
+    const geminiKey = process.env.GEMINI_API_KEY;
 
     log.info(`[1] EXACT IDEA TEXT RECEIVED: "${input?.idea}"`);
     log.info(`    Category: "${input?.category || 'Not specified'}"`);
     log.info(`    Target User: "${input?.targetUser || 'Not specified'}"`);
-    log.info(`    API Keys Provided: Gemini=${geminiKey ? 'YES' : 'NO'}, GitHub=${githubToken ? 'YES' : 'NO'}`);
+    log.info(`    Server API Keys Configured: Gemini=${geminiKey ? 'YES' : 'NO'}, GitHub=${githubToken ? 'YES' : 'NO'}`);
 
     if (!input || !input.idea) {
       log.error('[ERROR] Missing idea text in request body.');
       return NextResponse.json({ error: 'Idea text is required' }, { status: 400 });
     }
 
-    // Parallel multi-source fetch (arXiv + GitHub + Google Patents)
-    log.info('[2] Initiating parallel multi-source fetch (arXiv + GitHub + Google Patents)...');
-    const [papers, repos, patents] = await Promise.all([
+    const techKeywords = input.idea.split(' ').filter(w => w.length > 3).slice(0, 2);
+
+    // Parallel multi-source fetch (arXiv + GitHub + Google Patents + Hugging Face Datasets + Builder Repos + Foundational Papers)
+    log.info('[2] Initiating parallel multi-source fetch (Competitor Search + Build Resources + HF Datasets)...');
+    const [papers, repos, patents, datasets, buildRepos, foundationalPapers] = await Promise.all([
       fetchArxivPapers(input.idea, 3),
       fetchGitHubRepos(input.idea, githubToken, 3),
       fetchGooglePatents(input.idea, 3),
+      fetchHuggingFaceDatasets(input.idea, 4),
+      fetchBuildResourcesGitHubRepos(techKeywords, githubToken, 3),
+      fetchFoundationalPapers(input.idea, 3),
     ]);
 
-    log.info(`[3] arXiv returned ${papers.length} papers. GitHub returned ${repos.length} repos. Patents returned ${patents.length} records.`);
+    log.info(`[3] arXiv=${papers.length} | Competitor GitHub=${repos.length} | Patents=${patents.length} | HF Datasets=${datasets.length} | Builder Repos=${buildRepos.length}`);
 
     // Live Gemini AI synthesis
     log.info('[4] Calling Gemini AI Synthesis...');
-    const geminiResult = await runGeminiSynthesis(input, papers, repos, patents, geminiKey);
+    let resultState = await runGeminiSynthesis(input, papers, repos, patents, geminiKey);
+    let isLive = true;
 
-    if (geminiResult) {
-      log.info(`[5] SUCCESS: LIVE PATH EXECUTED in ${Date.now() - startTime}ms.`);
-      log.info(`    Novelty Score: ${geminiResult.metrics.noveltyScore}`);
-      log.info(`    White Space Title: "${geminiResult.metrics.whiteSpaceTitle}"`);
-      log.info('=================================================================\n');
-      return NextResponse.json({ success: true, data: geminiResult, isLive: true });
+    if (!resultState) {
+      log.info('[5] NOTICE: DYNAMIC FALLBACK PATH EXECUTED.');
+      resultState = generateDynamicFallbackState(input, papers, repos, patents);
+      isLive = false;
     }
 
-    // Dynamic Fallback path when no Gemini API key is configured or Gemini rate-limited
-    log.info('[5] NOTICE: DYNAMIC FALLBACK PATH EXECUTED.');
-    const dynamicFallback = generateDynamicFallbackState(input, papers, repos, patents);
+    // Attach 1:1 Citation-Backed Research Claims
+    resultState.citationClaims = generateCitationClaims(papers, repos, patents, resultState.webInsights || []);
 
-    log.info(`    Dynamic Fallback Novelty Score: ${dynamicFallback.metrics.noveltyScore}`);
-    log.info(`    Dynamic White Space Title: "${dynamicFallback.metrics.whiteSpaceTitle}"`);
-    log.info(`    Total execution time: ${Date.now() - startTime}ms.`);
+    // Attach distinct Build Resources Panel data to blueprint
+    const techStackNames = resultState.blueprint.techStack.map(t => t.chosen);
+    const learningResources = fetchLearningResources(techStackNames, input.idea);
+
+    resultState.blueprint.buildResources = {
+      datasets,
+      buildRepos,
+      foundationalPapers,
+      learningResources,
+    };
+
+    log.info(`[6] SUCCESS: Processed in ${Date.now() - startTime}ms. Attached ${resultState.citationClaims.length} Citation Claims & ${datasets.length} HF Datasets.`);
     log.info('=================================================================\n');
 
-    return NextResponse.json({ success: true, data: dynamicFallback, isLive: false });
+    return NextResponse.json({ success: true, data: resultState, isLive });
   } catch (err: any) {
     log.error('[ERROR] Exception in DeepSearch route:', err);
     return NextResponse.json(

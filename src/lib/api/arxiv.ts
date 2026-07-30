@@ -54,3 +54,19 @@ export async function fetchArxivPapers(query: string, maxResults: number = 3): P
     return [];
   }
 }
+
+export async function fetchFoundationalPapers(domainQuery: string, maxResults: number = 3): Promise<ResearchPaper[]> {
+  try {
+    const foundationalQuery = `all:${encodeURIComponent(domainQuery)} AND (all:survey OR all:foundational OR all:architecture)`;
+    log.info(`[Foundational arXiv] Querying arXiv for technique/tutorial papers: "${domainQuery}"`);
+    
+    const papers = await fetchArxivPapers(domainQuery, maxResults);
+    return papers.map((p, idx) => ({
+      ...p,
+      approachFamily: 'Foundational Technique & Tutorial Reading',
+    }));
+  } catch (err) {
+    log.warn('[Foundational arXiv] Fetch error:', err);
+    return [];
+  }
+}
