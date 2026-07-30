@@ -194,7 +194,7 @@ export default function MentorStep({
           size="md"
           onClick={handleTriggerLiveTelegramPush}
           leftIcon={<Bell className="w-4 h-4 text-forge-white" />}
-          className="self-start sm:self-auto shrink-0"
+          className="w-full sm:w-auto justify-center min-h-[44px] shrink-0"
         >
           {pushedTelegram ? 'Alert Pushed to Telegram!' : 'Push Live Telegram Alert'}
         </Button>
@@ -204,16 +204,16 @@ export default function MentorStep({
       <Card variant="blueprint" className="flex flex-col h-[580px] p-0 shadow-2xl overflow-hidden">
         
         {/* Chat Stream */}
-        <div className="flex-1 p-6 sm:p-8 space-y-6 overflow-y-auto">
+        <div className="flex-1 p-4 sm:p-8 space-y-6 overflow-y-auto">
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex items-start gap-3.5 ${
+              className={`flex items-start gap-2.5 sm:gap-3.5 ${
                 msg.sender === 'user' ? 'flex-row-reverse' : ''
               }`}
             >
               <div
-                className={`w-9 h-9 rounded-blueprint flex items-center justify-center shrink-0 ${
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-blueprint flex items-center justify-center shrink-0 ${
                   msg.sender === 'bot'
                     ? 'bg-brand-ember/15 border border-brand-ember/30 text-brand-ember shadow-md'
                     : 'bg-quenched-steel/30 text-forge-white'
@@ -223,13 +223,13 @@ export default function MentorStep({
               </div>
 
               <div
-                className={`max-w-lg p-4 sm:p-5 rounded-blueprint text-xs font-sans leading-relaxed space-y-2 ${
+                className={`max-w-[85%] sm:max-w-lg p-3.5 sm:p-5 rounded-blueprint text-xs font-sans leading-relaxed space-y-2 break-words ${
                   msg.sender === 'user'
                     ? 'bg-brand-ember text-white rounded-tr-none shadow-lg shadow-brand-ember/15'
                     : 'bg-forge-surface-light border border-quenched-steel/25 text-zinc-200 rounded-tl-none shadow-sm'
                 }`}
               >
-                <div className="whitespace-pre-line">{msg.text}</div>
+                <div className="whitespace-pre-line break-words">{msg.text}</div>
                 <div
                   className={`text-[10px] font-mono ${
                     msg.sender === 'user' ? 'text-white/80 text-right' : 'text-zinc-500'
@@ -242,7 +242,7 @@ export default function MentorStep({
           ))}
 
           {isTyping && (
-            <div className="flex items-center gap-2 text-xs font-mono text-brand-ember animate-pulse pl-12">
+            <div className="flex items-center gap-2 text-xs font-mono text-brand-ember animate-pulse pl-10 sm:pl-12">
               <Sparkles className="w-3.5 h-3.5" />
               <span>AI Mentor is thinking & analyzing your blueprint...</span>
             </div>
@@ -250,13 +250,13 @@ export default function MentorStep({
         </div>
 
         {/* Input Form */}
-        <form onSubmit={handleSend} className="p-4 sm:p-6 border-t border-quenched-steel/20 bg-forge-black/90 flex items-center gap-3">
+        <form onSubmit={handleSend} className="p-3 sm:p-6 border-t border-quenched-steel/20 bg-forge-black/90 flex items-center gap-2 sm:gap-3">
           <Input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask AI Mentor about your architecture, stack, or report 'I finished milestone 1'..."
-            className="flex-1 text-xs"
+            placeholder="Ask AI Mentor about your architecture, stack..."
+            className="flex-1 text-xs min-h-[44px]"
           />
 
           <Button
@@ -264,7 +264,7 @@ export default function MentorStep({
             variant="primary"
             size="md"
             disabled={!inputText.trim() || isTyping}
-            className="shrink-0"
+            className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Send message"
           >
             <Send className="w-4 h-4" />

@@ -37,7 +37,7 @@ export default function GapMapStep({ data, onContinue }: GapMapStepProps) {
           size="md"
           onClick={onContinue}
           rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="self-start sm:self-auto shrink-0"
+          className="w-full sm:w-auto justify-center min-h-[44px] shrink-0"
         >
           Stress-test architecture
         </Button>

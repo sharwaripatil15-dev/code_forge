@@ -124,6 +124,7 @@ export default function IdeaInputStep({ onSubmitIdea, initialInput }: IdeaInputS
               variant="primary"
               disabled={!ideaText.trim()}
               rightIcon={<ArrowRight className="w-5 h-5" />}
+              className="w-full sm:w-auto justify-center min-h-[44px]"
             >
               Run DeepSearch pass
             </Button>

@@ -184,12 +184,13 @@ Interested? DM me to review our complete IdeaForge blueprint and join the reposi
               size="sm"
               onClick={handleCopyPost}
               leftIcon={copiedPost ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              className="w-full sm:w-auto justify-center min-h-[44px] shrink-0"
             >
               {copiedPost ? 'Copied Post to Clipboard!' : 'Copy Recruitment Post'}
             </Button>
           </div>
 
-          <pre className="p-4 bg-forge-black border border-quenched-steel/30 rounded-blueprint text-xs font-mono text-zinc-200 overflow-x-auto leading-relaxed shadow-inner">
+          <pre className="p-4 bg-forge-black border border-quenched-steel/30 rounded-blueprint text-xs font-mono text-zinc-200 overflow-x-auto whitespace-pre-wrap break-words leading-relaxed shadow-inner">
             {cofounderPostText}
           </pre>
         </Card>

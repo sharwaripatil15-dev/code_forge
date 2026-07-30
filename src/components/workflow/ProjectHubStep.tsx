@@ -93,13 +93,14 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto shrink-0">
           <Button
             variant="quenched"
             size="md"
             isLoading={isCreatingRepo}
             onClick={handleCreateRepo}
             leftIcon={<GitBranch className="w-4 h-4 text-forge-white" />}
+            className="w-full sm:w-auto justify-center min-h-[44px]"
           >
             Create GitHub Repo
           </Button>
@@ -109,6 +110,7 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
             size="md"
             onClick={onOpenTelegramMentor}
             leftIcon={<Send className="w-4 h-4" />}
+            className="w-full sm:w-auto justify-center min-h-[44px]"
           >
             Launch AI Telegram Mentor Agent
           </Button>

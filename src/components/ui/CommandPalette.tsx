@@ -138,7 +138,7 @@ export function CommandPalette({
               <button
                 key={action.id}
                 onClick={action.run}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-blueprint text-left hover:bg-brand-ember/15 border border-transparent hover:border-brand-ember/30 transition group"
+                className="w-full flex items-center justify-between px-4 py-3 min-h-[44px] rounded-blueprint text-left hover:bg-brand-ember/15 border border-transparent hover:border-brand-ember/30 transition group"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-md bg-forge-surface-light group-hover:bg-brand-ember/20 transition">

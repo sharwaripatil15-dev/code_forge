@@ -54,9 +54,9 @@ export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-forge-surface-light transition"
+          className="absolute top-4 right-4 p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-forge-surface-light transition min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}

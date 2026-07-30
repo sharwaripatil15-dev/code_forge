@@ -43,7 +43,7 @@ export function PlanHistorySidebar({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-24 left-4 z-30 p-2.5 rounded-xl bg-forge-surface/90 border border-quenched-steel/30 text-brand-ember hover:bg-brand-ember/20 hover:border-brand-ember/50 shadow-xl transition-all group backdrop-blur-md"
+          className="fixed top-20 sm:top-24 left-3 sm:left-4 z-30 min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-forge-surface/95 border border-brand-ember/40 text-brand-ember hover:bg-brand-ember/20 shadow-xl transition-all group backdrop-blur-md flex items-center justify-center"
           title="Open Plan History Sidebar"
           aria-label="Open Plan History Sidebar"
         >
@@ -55,7 +55,7 @@ export function PlanHistorySidebar({
       {/* 2. Backdrop Overlay when expanded */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-forge-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-forge-black/80 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -63,7 +63,7 @@ export function PlanHistorySidebar({
 
       {/* 3. Sliding Drawer Panel */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 w-80 sm:w-88 bg-forge-surface/95 border-r border-quenched-steel/30 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out backdrop-blur-xl ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-full sm:w-88 bg-forge-surface/95 border-r border-quenched-steel/30 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out backdrop-blur-xl ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -85,7 +85,7 @@ export function PlanHistorySidebar({
 
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-forge-surface-light transition shrink-0"
+            className="p-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-forge-surface-light transition shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="Close Sidebar"
           >
             <PanelLeftClose className="w-5 h-5 text-brand-ember" />

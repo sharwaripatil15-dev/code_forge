@@ -66,7 +66,7 @@ export default function GapMapGraph({ nodes }: GapMapGraphProps) {
           </div>
         </div>
 
-        <svg className="w-full h-full">
+        <svg className="w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
           {/* Connection Lines */}
           <line x1={220} y1={160} x2={150} y2={320} stroke="rgba(74, 98, 116, 0.3)" strokeWidth="2" strokeDasharray="4 4" />
           <line x1={150} y1={320} x2={380} y2={130} stroke="rgba(74, 98, 116, 0.3)" strokeWidth="2" />

@@ -22,7 +22,7 @@ export default function IdeaRadarChart({ metrics }: IdeaRadarChartProps) {
 
   return (
     <Card variant="blueprint" className="p-6 space-y-6 shadow-2xl">
-      <div className="flex items-center justify-between border-b border-quenched-steel/20 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-quenched-steel/20 pb-4">
         <div>
           <h3 className="text-lg font-display font-bold text-forge-white flex items-center gap-2">
             <Zap className="w-5 h-5 text-brand-ember" />
@@ -33,7 +33,7 @@ export default function IdeaRadarChart({ metrics }: IdeaRadarChartProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-right">
+        <div className="flex items-center gap-4 text-left sm:text-right shrink-0">
           <div>
             <span className="text-xl font-mono font-extrabold text-emerald-400">{metrics.feasibilityScore}/100</span>
             <p className="text-[10px] font-mono text-quenched-steel-light uppercase tracking-wider">Feasibility</p>

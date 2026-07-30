@@ -69,7 +69,7 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           size="md"
           onClick={onContinue}
           rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="self-start md:self-auto shrink-0"
+          className="w-full sm:w-auto justify-center min-h-[44px] shrink-0"
         >
           Explore Interactive Gap Map
         </Button>
@@ -98,7 +98,7 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           <span>Knowledge Clusters & Prior-Art Families</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {data.clusters.concat([
             {
               id: 'c-patents',

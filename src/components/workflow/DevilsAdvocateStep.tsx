@@ -251,13 +251,14 @@ export default function DevilsAdvocateStep({ data, onContinue, onUpdateQuestions
                 placeholder="Type how your system handles this technical risk..."
               />
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleAnswerSubmit(currentQ.id, currentQ.suggestedAnswer)}
                     leftIcon={<Sparkles className="w-4 h-4 text-brand-ember" />}
+                    className="w-full sm:w-auto justify-center min-h-[44px]"
                   >
                     Use recommended AI reasoning
                   </Button>
@@ -267,6 +268,7 @@ export default function DevilsAdvocateStep({ data, onContinue, onUpdateQuestions
                     size="sm"
                     onClick={() => handleAnswerSubmit(currentQ.id, '', true)}
                     leftIcon={<SkipForward className="w-4 h-4 text-zinc-400" />}
+                    className="w-full sm:w-auto justify-center min-h-[44px]"
                   >
                     Skip (-8% penalty)
                   </Button>
@@ -278,6 +280,7 @@ export default function DevilsAdvocateStep({ data, onContinue, onUpdateQuestions
                   isLoading={isAiEvaluating}
                   onClick={() => handleAnswerSubmit(currentQ.id)}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
+                  className="w-full sm:w-auto justify-center min-h-[44px]"
                 >
                   Submit technical defense
                 </Button>
