@@ -80,13 +80,51 @@ export default function WorkspacePage() {
     }
   };
 
+  const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false);
+
+  const fetchLazyBlueprint = useCallback(async (currentState: DeepSearchState) => {
+    if (!currentState || !currentState.input || !currentState.input.idea) return;
+
+    setIsGeneratingBlueprint(true);
+    try {
+      const response = await fetch('/api/blueprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: currentState.input,
+          papers: currentState.papers || [],
+          repos: currentState.repos || [],
+          patents: currentState.patents || [],
+          language: activeLanguage,
+        }),
+      });
+
+      const resData = await response.json();
+      if (resData.success && resData.blueprint) {
+        setSearchData((prev) => ({
+          ...prev,
+          blueprint: resData.blueprint,
+        }));
+      }
+    } catch (err) {
+      console.warn('[Lazy Blueprint] Fetch error:', err);
+    } finally {
+      setIsGeneratingBlueprint(false);
+    }
+  }, [activeLanguage]);
+
   // Helper to change step and persist in localStorage
   const changeStep = useCallback((step: StepId) => {
     setCurrentStep(step);
     if (typeof window !== 'undefined') {
       localStorage.setItem('ideaforge_active_step', step);
     }
-  }, []);
+
+    // Trigger lazy blueprint generation when navigating to Step 5 (Project HUB)
+    if (step === 'blueprint') {
+      fetchLazyBlueprint(searchData);
+    }
+  }, [fetchLazyBlueprint, searchData]);
 
   // Persist plan whenever searchData updates
   useEffect(() => {

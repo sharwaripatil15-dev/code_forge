@@ -594,7 +594,18 @@ export function generateDynamicFallbackState(input: IdeaInputData, papers: any[]
   };
 }
 
-export async function runGeminiSynthesis(
+export function generateDynamicBlueprintOnly(
+  input: IdeaInputData,
+  papers: any[],
+  repos: any[],
+  patents: any[],
+  languageCode: string = 'en'
+) {
+  const fullFallback = generateDynamicFallbackState(input, papers, repos, patents, languageCode);
+  return fullFallback.blueprint;
+}
+
+export async function runFastDeepSearchSynthesis(
   input: IdeaInputData,
   papers: any[],
   repos: any[],
@@ -604,9 +615,9 @@ export async function runGeminiSynthesis(
 ): Promise<DeepSearchState | null> {
   const geminiKey = process.env.GEMINI_API_KEY;
 
-  log.info(`[DeepSearch Gemini] Request received for idea: "${input.idea}" in language: "${languageCode}"`);
+  log.info(`[Fast DeepSearch Gemini] Request received for idea: "${input.idea}" in language: "${languageCode}"`);
   if (!geminiKey) {
-    log.info('[DeepSearch Gemini] No GEMINI_API_KEY present in process.env. Executing dynamic fallback path.');
+    log.info('[Fast DeepSearch Gemini] No GEMINI_API_KEY present in process.env. Executing dynamic fallback path.');
     return null;
   }
 
@@ -626,23 +637,21 @@ export async function runGeminiSynthesis(
   };
   const targetLanguageName = languageMap[languageCode] || 'English';
 
-  const languageInstruction = languageCode !== 'en'
-    ? `\n\nCRITICAL MULTILINGUAL MANDATE: The user has selected ${targetLanguageName} (${languageCode}) language. You MUST generate ALL human-readable text values (whiteSpaceTitle, whiteSpaceDescription, keyInnovations, executiveSummary, problemStatement, uniqueValueProposition, title, tagline, architecture node titles & descriptions, techStack rationales, milestone titles, actionableSteps, and scaffold README content) IN ${targetLanguageName.toUpperCase()} LANGUAGE (${languageCode}). Respond directly in ${targetLanguageName}.`
-    : '';
+  const prompt = `You are IdeaForge AI Copilot. Perform FAST initial research analysis on this project idea. Return ONLY a lightweight JSON object with market clusters, novelty metrics, web insights, and 3 devil's advocate questions. Do NOT generate system architecture, tech stack, or scaffold files.
 
-  const prompt = `You are IdeaForge AI Copilot. Analyze the following project idea and return a JSON object with custom scores, architecture nodes, tech stack, apisAndDatasets, timeline, milestones with actionableSteps, and scaffold files tailored SPECIFICALLY TO THIS IDEA.${languageInstruction}
 Idea: "${input.idea}"
 Category: "${input.category || 'Tech'}"
 Target User: "${input.targetUser || 'Developers'}"
 
-Papers found: ${JSON.stringify(papers.slice(0, 3))}
-Repos found: ${JSON.stringify(repos.slice(0, 3))}
-Patents found: ${JSON.stringify(patents.slice(0, 3))}
+Papers: ${JSON.stringify(papers.slice(0, 2))}
+Repos: ${JSON.stringify(repos.slice(0, 2))}
+Patents: ${JSON.stringify(patents.slice(0, 2))}
 
-Output JSON with exact fields:
+Output exact JSON structure:
 {
   "clusters": [
-    { "id": "c1", "name": "...", "color": "#f97316", "description": "...", "itemCount": 3, "dominantTrend": "..." }
+    { "id": "c1", "name": "...", "color": "#FF3B00", "description": "...", "itemCount": 3, "dominantTrend": "..." },
+    { "id": "c2", "name": "...", "color": "#00F0FF", "description": "...", "itemCount": 2, "dominantTrend": "..." }
   ],
   "metrics": {
     "noveltyScore": 88,
@@ -657,48 +666,21 @@ Output JSON with exact fields:
   "webInsights": [
     { "id": "w1", "title": "...", "snippet": "...", "url": "https://google.com", "source": "Web Intelligence", "approachFamily": "..." }
   ],
-  "blueprint": {
-    "title": "IdeaForge Blueprint: ...",
-    "tagline": "...",
-    "problemStatement": "...",
-    "executiveSummary": "...",
-    "uniqueValueProposition": "...",
-    "architectureNodes": [
-      { "id": "arch1", "title": "...", "category": "Frontend", "tech": "...", "description": "..." }
-    ],
-    "techStack": [
-      { "category": "Frontend", "chosen": "Next.js 14", "rationale": "...", "alternatives": ["Vite"] }
-    ],
-    "apisAndDatasets": [
-      { "name": "...", "type": "Third-Party API", "description": "...", "useCase": "...", "accessUrl": "...", "licenseOrTier": "..." }
-    ],
-    "timeline": {
-      "totalEstimatedWeeks": 4,
-      "totalEstimatedHours": 60,
-      "criticalPath": "...",
-      "phases": [ { "phaseName": "...", "duration": "...", "goal": "..." } ]
-    },
-    "milestones": [
-      { "week": 1, "title": "...", "duration": "...", "actionableSteps": ["Task 1.1: ...", "Task 1.2: ..."], "deliverables": ["..."], "potentialRisk": "..." }
-    ],
-    "scaffoldFiles": [
-      { "filePath": "README.md", "description": "...", "content": "..." }
-    ],
-    "telegramMentorPrompt": "🤖 IdeaForge Mentor: ..."
-  }
+  "devilsQuestions": [
+    { "id": "q1", "question": "...", "category": "Defensibility", "riskLevel": "high", "rebuttalHint": "..." }
+  ]
 }`;
 
   for (const modelName of modelsToTry) {
     try {
-      log.info(`[DeepSearch Gemini] Trying model "${modelName}" with key (${geminiKey.slice(0, 6)}...)...`);
+      log.info(`[Fast DeepSearch Gemini] Trying model "${modelName}"...`);
       const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ model: modelName });
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+      const responseText = (await result.response).text();
 
-      log.info(`[DeepSearch Gemini] SUCCESS with model "${modelName}" (${responseText.length} chars)`);
+      log.info(`[Fast DeepSearch Gemini] SUCCESS with model "${modelName}" (${responseText.length} chars)`);
 
       const cleanedJson = responseText
         .replace(/```json/g, '')
@@ -706,7 +688,7 @@ Output JSON with exact fields:
         .trim();
 
       const parsed = JSON.parse(cleanedJson);
-      const fallbackDynamic = generateDynamicFallbackState(input, papers, repos, patents);
+      const fallbackDynamic = generateDynamicFallbackState(input, papers, repos, patents, languageCode);
 
       return {
         input,
@@ -717,21 +699,116 @@ Output JSON with exact fields:
         clusters: parsed.clusters || fallbackDynamic.clusters,
         metrics: parsed.metrics || fallbackDynamic.metrics,
         nodes: fallbackDynamic.nodes,
-        devilsQuestions: fallbackDynamic.devilsQuestions,
-        blueprint: {
-          ...fallbackDynamic.blueprint,
-          ...(parsed.blueprint || {}),
-          apisAndDatasets: parsed.blueprint?.apisAndDatasets || fallbackDynamic.blueprint.apisAndDatasets,
-          timeline: parsed.blueprint?.timeline || fallbackDynamic.blueprint.timeline,
-          milestones: parsed.blueprint?.milestones || fallbackDynamic.blueprint.milestones,
-        },
+        devilsQuestions: parsed.devilsQuestions || fallbackDynamic.devilsQuestions,
+        blueprint: fallbackDynamic.blueprint,
         isLive: true,
       };
     } catch (err: any) {
-      log.warn(`[DeepSearch Gemini] Model "${modelName}" error: ${err?.message || err}`);
+      log.warn(`[Fast DeepSearch Gemini] Model "${modelName}" error: ${err?.message || err}`);
     }
   }
 
-  log.warn('[DeepSearch Gemini] All Gemini model names exhausted or key unauthorized. Executing dynamic fallback path.');
+  log.warn('[Fast DeepSearch Gemini] Fallback path executed.');
   return null;
+}
+
+export async function runBlueprintSynthesis(
+  input: IdeaInputData,
+  papers: any[],
+  repos: any[],
+  patents: any[],
+  apiKey?: string,
+  languageCode: string = 'en'
+) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if (!geminiKey) {
+    return generateDynamicBlueprintOnly(input, papers, repos, patents, languageCode);
+  }
+
+  const modelsToTry = [
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
+  ];
+
+  const prompt = `You are IdeaForge AI Copilot. Generate a complete 3D System Architecture Blueprint & Scaffold specification for:
+Idea: "${input.idea}"
+Category: "${input.category || 'Tech'}"
+Target User: "${input.targetUser || 'Developers'}"
+
+Output exact JSON:
+{
+  "title": "IdeaForge Blueprint: ${input.idea.slice(0, 30)}",
+  "tagline": "...",
+  "problemStatement": "...",
+  "executiveSummary": "...",
+  "uniqueValueProposition": "...",
+  "architectureNodes": [
+    { "id": "arch1", "title": "Frontend UI Portal", "category": "Frontend", "tech": "Next.js 14, React 18, Tailwind", "description": "..." },
+    { "id": "arch2", "title": "API Gateway & Router", "category": "Gateway", "tech": "Node.js, Express, Upstash Redis", "description": "..." },
+    { "id": "arch3", "title": "AI Reasoning Core", "category": "AI Engine", "tech": "Gemini 1.5 Flash, LangChain", "description": "..." },
+    { "id": "arch4", "title": "Data & Vector Database", "category": "Storage", "tech": "Supabase Postgres, PgVector", "description": "..." }
+  ],
+  "techStack": [
+    { "category": "Frontend", "chosen": "Next.js 14", "rationale": "...", "alternatives": ["Vite", "Remix"] },
+    { "category": "Backend & API", "chosen": "Node.js & Express", "rationale": "...", "alternatives": ["FastAPI", "Go"] },
+    { "category": "Database & Storage", "chosen": "Supabase Postgres", "rationale": "...", "alternatives": ["MongoDB", "PlanetScale"] }
+  ],
+  "apisAndDatasets": [
+    { "name": "GitHub REST API v4", "type": "Third-Party API", "description": "...", "useCase": "...", "accessUrl": "https://docs.github.com", "licenseOrTier": "Free" }
+  ],
+  "timeline": {
+    "totalEstimatedWeeks": 4,
+    "totalEstimatedHours": 60,
+    "criticalPath": "...",
+    "phases": [ { "phaseName": "Phase 1: Foundations", "duration": "Week 1", "goal": "Core engine setup" } ]
+  },
+  "milestones": [
+    { "week": 1, "title": "Foundation Setup", "duration": "Week 1", "actionableSteps": ["Task 1.1: Setup Next.js workspace"], "deliverables": ["Working repo"], "potentialRisk": "Token limit" }
+  ],
+  "scaffoldFiles": [
+    { "filePath": "README.md", "description": "Project overview", "content": "# ${input.idea}" }
+  ],
+  "telegramMentorPrompt": "🤖 IdeaForge Mentor: Checklist ready!"
+}`;
+
+  for (const modelName of modelsToTry) {
+    try {
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const responseText = (await result.response).text();
+
+      const cleanedJson = responseText
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+
+      const parsed = JSON.parse(cleanedJson);
+      const fallback = generateDynamicBlueprintOnly(input, papers, repos, patents, languageCode);
+
+      return {
+        ...fallback,
+        ...parsed,
+        architectureNodes: parsed.architectureNodes || fallback.architectureNodes,
+        techStack: parsed.techStack || fallback.techStack,
+      };
+    } catch (err: any) {
+      log.warn(`[Blueprint Gemini] Model "${modelName}" error: ${err?.message || err}`);
+    }
+  }
+
+  return generateDynamicBlueprintOnly(input, papers, repos, patents, languageCode);
+}
+
+export async function runGeminiSynthesis(
+  input: IdeaInputData,
+  papers: any[],
+  repos: any[],
+  patents: any[],
+  apiKey?: string,
+  languageCode: string = 'en'
+): Promise<DeepSearchState | null> {
+  return runFastDeepSearchSynthesis(input, papers, repos, patents, apiKey, languageCode);
 }
