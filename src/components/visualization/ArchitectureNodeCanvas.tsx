@@ -5,7 +5,9 @@ import { ArchitectureNode } from '@/lib/types';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Cpu, X, Code, ExternalLink, Play, Layers } from 'lucide-react';
+import { Cpu, X, Code, ExternalLink, Play, Layers, Box } from 'lucide-react';
+
+import Architecture3DCanvas from './Architecture3DCanvas';
 
 interface ArchitectureNodeCanvasProps {
   nodes: ArchitectureNode[];
@@ -13,8 +15,18 @@ interface ArchitectureNodeCanvasProps {
 
 export default function ArchitectureNodeCanvas({ nodes }: ArchitectureNodeCanvasProps) {
   const [selectedNode, setSelectedNode] = useState<ArchitectureNode | null>(null);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   if (!nodes || nodes.length === 0) return null;
+
+  if (viewMode === '3d') {
+    return (
+      <Architecture3DCanvas
+        nodes={nodes}
+        onBackTo2D={() => setViewMode('2d')}
+      />
+    );
+  }
 
   return (
     <Card variant="blueprint" className="p-8 space-y-6 shadow-xl relative overflow-hidden">
@@ -31,9 +43,20 @@ export default function ArchitectureNodeCanvas({ nodes }: ArchitectureNodeCanvas
           </p>
         </div>
 
-        <Badge variant="ember" size="sm">
-          Interactive Node Graph • {nodes.length} Nodes
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setViewMode('3d')}
+            className="text-xs font-mono bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
+          >
+            <Box className="w-3.5 h-3.5 mr-1 text-cyan-400 animate-pulse" /> Launch 3D Holo-Grid
+          </Button>
+
+          <Badge variant="ember" size="sm">
+            {nodes.length} Nodes
+          </Badge>
+        </div>
       </div>
 
       {/* SVG Pipeline Canvas */}

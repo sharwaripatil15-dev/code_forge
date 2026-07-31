@@ -161,7 +161,7 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
                   <span className="text-zinc-400 text-[10px]">{claim.authorOrMeta}</span>
                 </div>
 
-                <p className="text-xs font-sans text-zinc-200 leading-relaxed font-medium">
+                <p className="text-xs font-sans text-zinc-200 leading-relaxed font-medium line-clamp-3">
                   "{claim.claimSentence}"
                 </p>
 

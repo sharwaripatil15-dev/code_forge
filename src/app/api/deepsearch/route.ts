@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { fetchArxivPapers } from '@/lib/api/arxiv';
-import { fetchGitHubRepos } from '@/lib/api/github';
+import { fetchGitHubRepos, fetchBuildResourcesGitHubRepos, extractGitHubSearchKeywords } from '@/lib/api/github';
 import { fetchGooglePatents } from '@/lib/api/patents';
 import { runGeminiSynthesis, generateDynamicFallbackState } from '@/lib/api/gemini';
 import { IdeaInputData } from '@/lib/types';
 import { log } from '@/lib/logger';
 import { fetchHuggingFaceDatasets } from '@/lib/api/datasets';
 import { fetchFoundationalPapers } from '@/lib/api/arxiv';
-import { fetchBuildResourcesGitHubRepos } from '@/lib/api/github';
 import { fetchLearningResources } from '@/lib/api/resources';
 import { generateCitationClaims } from '@/lib/api/citations';
 
@@ -35,7 +34,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Idea text is required' }, { status: 400 });
     }
 
-    const techKeywords = input.idea.split(' ').filter(w => w.length > 3).slice(0, 2);
+    const cleanIdeaQuery = extractGitHubSearchKeywords(input.idea);
+    const techKeywords = cleanIdeaQuery.split(' ');
 
     // Parallel multi-source fetch (arXiv + GitHub + Google Patents + Hugging Face Datasets + Builder Repos + Foundational Papers)
     log.info('[2] Initiating parallel multi-source fetch (Competitor Search + Build Resources + HF Datasets)...');

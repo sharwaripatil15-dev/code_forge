@@ -11,9 +11,10 @@ export function generateCitationClaims(
   // 1. arXiv Papers (1:1 claim mapping)
   papers.forEach((paper, idx) => {
     const authorsStr = paper.authors && paper.authors.length > 0 ? paper.authors.join(', ') : 'arXiv Researchers';
+    const cleanSummary = (paper.summary || '').replace(/\s+/g, ' ').slice(0, 140).trim();
     claims.push({
       id: `claim-paper-${idx}`,
-      claimSentence: `Academic research highlights that ${paper.title.replace(/^Title:\s*/i, '')} introduces a methodology for ${paper.summary.slice(0, 140).toLowerCase()}...`,
+      claimSentence: `Academic research highlights that ${paper.title.replace(/^Title:\s*/i, '')} introduces a methodology for ${cleanSummary.toLowerCase()}...`,
       sourceType: 'arXiv Paper',
       sourceTitle: paper.title,
       sourceUrl: paper.url,
@@ -24,9 +25,10 @@ export function generateCitationClaims(
 
   // 2. GitHub Repositories (1:1 claim mapping)
   repos.forEach((repo, idx) => {
+    const cleanDesc = (repo.description || '').replace(/\s+/g, ' ').slice(0, 140).trim();
     claims.push({
       id: `claim-repo-${idx}`,
-      claimSentence: `Existing open-source implementation in ${repo.fullName} demonstrates ${repo.description.toLowerCase()} utilizing ${repo.primaryLanguage}.`,
+      claimSentence: `Existing open-source implementation in ${repo.fullName} demonstrates ${cleanDesc.toLowerCase()}... utilizing ${repo.primaryLanguage}.`,
       sourceType: 'GitHub Repository',
       sourceTitle: repo.fullName,
       sourceUrl: repo.url,
@@ -37,9 +39,10 @@ export function generateCitationClaims(
 
   // 3. Patent Records (1:1 claim mapping)
   patents.forEach((patent, idx) => {
+    const cleanAbstract = (patent.abstract || '').replace(/\s+/g, ' ').slice(0, 140).trim();
     claims.push({
       id: `claim-patent-${idx}`,
-      claimSentence: `IP prior-art record ${patent.patentNumber} (${patent.title}) covers proprietary claims for ${patent.abstract.slice(0, 130).toLowerCase()}...`,
+      claimSentence: `IP prior-art record ${patent.patentNumber} (${patent.title}) covers proprietary claims for ${cleanAbstract.toLowerCase()}...`,
       sourceType: 'Patent Record',
       sourceTitle: `${patent.patentNumber}: ${patent.title}`,
       sourceUrl: patent.url,
@@ -50,9 +53,10 @@ export function generateCitationClaims(
 
   // 4. Web Search Grounding (1:1 claim mapping)
   webInsights.slice(0, 2).forEach((web, idx) => {
+    const cleanSnippet = (web.snippet || '').replace(/\s+/g, ' ').slice(0, 140).trim();
     claims.push({
       id: `claim-web-${idx}`,
-      claimSentence: `Live web research confirms that ${web.snippet.replace(/\n/g, ' ')}`,
+      claimSentence: `Live web research confirms that ${cleanSnippet}...`,
       sourceType: 'Web Search Grounding',
       sourceTitle: web.title,
       sourceUrl: web.url,

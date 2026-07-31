@@ -5,10 +5,15 @@ import { ProjectBlueprint } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import ArchitectureNodeCanvas from '../visualization/ArchitectureNodeCanvas';
+import ArchitectureNodeCanvas from '@/components/visualization/ArchitectureNodeCanvas';
 import TeamSkillMatrix from './TeamSkillMatrix';
-import BuildResourcesPanel from '../visualization/BuildResourcesPanel';
-import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight } from 'lucide-react';
+import BuildResourcesPanel from '@/components/visualization/BuildResourcesPanel';
+import CloudCostEstimator from '@/components/visualization/CloudCostEstimator';
+import ArchitectureStressTester from '@/components/visualization/ArchitectureStressTester';
+import PitchDeckModal from '@/components/workflow/PitchDeckModal';
+import ScaffoldGeneratorModal from '@/components/workflow/ScaffoldGeneratorModal';
+import ShareBlueprintModal from '@/components/ui/ShareBlueprintModal';
+import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, Play, Download, Share2, DollarSign, Activity, Box } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ProjectHubStepProps {
@@ -22,6 +27,12 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
   const [isCreatingRepo, setIsCreatingRepo] = useState(false);
   const [createdRepoUrl, setCreatedRepoUrl] = useState<string | null>(null);
   const [createRepoError, setCreateRepoError] = useState<string | null>(null);
+
+  // Feature Modal States & Dropdown State
+  const [isPitchDeckOpen, setIsPitchDeckOpen] = useState(false);
+  const [isScaffoldModalOpen, setIsScaffoldModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isToolsDropdownOpen, setIsToolsDropdownOpen] = useState(false);
 
   // GitHub Linking State (Universal for all users)
   const [githubUsername, setGithubUsername] = useState(() => {
@@ -112,27 +123,116 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto shrink-0 relative">
           <Button
-            variant="quenched"
-            size="md"
-            isLoading={isCreatingRepo}
-            onClick={() => handleCreateRepo()}
-            leftIcon={<GitBranch className="w-4 h-4 text-forge-white" />}
-            className="w-full sm:w-auto justify-center min-h-[44px]"
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              const el = document.getElementById('architecture-canvas-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="text-xs font-mono bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
           >
-            Create GitHub Repo
+            <Box className="w-3.5 h-3.5 mr-1 text-cyan-400 animate-pulse" /> 3D Architecture
           </Button>
 
           <Button
             variant="primary"
-            size="md"
-            onClick={onOpenTelegramMentor}
-            leftIcon={<Send className="w-4 h-4" />}
-            className="w-full sm:w-auto justify-center min-h-[44px]"
+            size="sm"
+            onClick={() => setIsPitchDeckOpen(true)}
+            className="text-xs font-mono bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
           >
-            Launch AI Telegram Mentor Agent
+            <Play className="w-3.5 h-3.5 mr-1 fill-amber-300" /> Pitch Deck
           </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsScaffoldModalOpen(true)}
+            className="text-xs font-mono bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
+          >
+            <Download className="w-3.5 h-3.5 mr-1" /> Scaffold (.ZIP)
+          </Button>
+
+          {/* Clean Dropdown Menu */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsToolsDropdownOpen(!isToolsDropdownOpen)}
+              className="text-xs font-mono text-zinc-200 border-quenched-steel/40 bg-forge-black/80 hover:border-brand-ember"
+            >
+              <Rocket className="w-3.5 h-3.5 mr-1 text-brand-ember" /> Tools & Actions ▾
+            </Button>
+
+            {isToolsDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-64 p-2 rounded-blueprint bg-forge-surface/95 border border-brand-ember/40 shadow-2xl backdrop-blur-xl z-50 space-y-1 animate-in fade-in zoom-in-95">
+                <button
+                  onClick={() => {
+                    setIsToolsDropdownOpen(false);
+                    const el = document.getElementById('cloud-cost-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-emerald-400 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-400" /> Cloud Cost Calculator
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsToolsDropdownOpen(false);
+                    const el = document.getElementById('stress-tester-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-brand-ember transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-brand-ember" /> Stress-Tester Simulator
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsToolsDropdownOpen(false);
+                    setIsShareModalOpen(true);
+                  }}
+                  className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-cyan-400 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-cyan-400" /> Share Blueprint & QR
+                  </span>
+                </button>
+
+                <div className="pt-1 border-t border-quenched-steel/20">
+                  <button
+                    onClick={() => {
+                      setIsToolsDropdownOpen(false);
+                      handleCreateRepo();
+                    }}
+                    className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-white transition"
+                  >
+                    <span className="flex items-center gap-2">
+                      <GitBranch className="w-4 h-4 text-white" /> Create GitHub Repo
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsToolsDropdownOpen(false);
+                      onOpenTelegramMentor();
+                    }}
+                    className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-sky-400 transition"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Send className="w-4 h-4 text-sky-400" /> AI Telegram Mentor
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
 
@@ -246,7 +346,9 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
       </div>
 
       {/* SECTION 1: Interactive System Architecture Canvas */}
-      <ArchitectureNodeCanvas nodes={blueprint.architectureNodes} />
+      <div id="architecture-canvas-section">
+        <ArchitectureNodeCanvas nodes={blueprint.architectureNodes} />
+      </div>
 
       {/* SECTION 2: Tech Stack */}
       <Card variant="blueprint" className="p-8 space-y-6 shadow-xl">
@@ -494,6 +596,16 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
           </div>
         </div>
       </Card>
+
+      {/* SECTION 1.5: Cloud Infrastructure & MAU Cost Estimator */}
+      <div id="cloud-cost-section">
+        <CloudCostEstimator blueprint={blueprint} />
+      </div>
+
+      {/* SECTION 1.6: AI System Bottleneck & Stress-Tester */}
+      <div id="stress-tester-section">
+        <ArchitectureStressTester blueprint={blueprint} />
+      </div>
 
       {/* SECTION 7: Build With This - Purpose-Built Resources & Datasets Panel */}
       <BuildResourcesPanel
