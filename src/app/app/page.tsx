@@ -11,11 +11,12 @@ import GapMapStep from '@/components/workflow/GapMapStep';
 import DevilsAdvocateStep from '@/components/workflow/DevilsAdvocateStep';
 import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
+import DashboardStep from '@/components/workflow/DashboardStep';
 import ForgeTransformation from '@/components/workflow/ForgeTransformation';
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
-import { getOrCreateSession, saveUserBlueprint, loadUserBlueprint, getUserPlansFromSupabase, UserSession } from '@/lib/supabase';
+import { getOrCreateSession, saveUserBlueprint, loadUserBlueprint, getUserPlansFromSupabase, logoutUserSession, UserSession } from '@/lib/supabase';
 import { LanguageCode } from '@/lib/translations';
 
 export default function WorkspacePage() {
@@ -58,7 +59,7 @@ export default function WorkspacePage() {
       ? (localStorage.getItem('ideaforge_active_step') as StepId | null)
       : null;
 
-    if (savedStep && ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'].includes(savedStep)) {
+    if (savedStep && ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor', 'dashboard'].includes(savedStep)) {
       setCurrentStep(savedStep);
     } else if (saved && saved.blueprint) {
       setCurrentStep('blueprint');
@@ -117,6 +118,12 @@ export default function WorkspacePage() {
     const saved = loadUserBlueprint(email);
     if (saved) setSearchData(saved);
     refreshUserPlans(email);
+  };
+
+  const handleLogout = () => {
+    const updated = logoutUserSession();
+    setSession(updated);
+    setUserPlans([]);
   };
 
   const handleToggleTheme = () => {
@@ -284,6 +291,7 @@ export default function WorkspacePage() {
         onSelectLanguage={handleSelectLanguage}
         userEmail={session.email}
         isLoggedIn={session.isLoggedIn}
+        onLogout={handleLogout}
       />
 
       {/* Main Workspace Canvas */}
@@ -336,6 +344,14 @@ export default function WorkspacePage() {
             onUpdateMessages={handleUpdateMentorMessages}
           />
         )}
+
+        {currentStep === 'dashboard' && (
+          <DashboardStep
+            onSelectPlan={handleSelectPlan}
+            onNewIdea={handleNewIdea}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          />
+        )}
       </main>
 
       {/* Auth Modal (Magic Link & Telegram Connection Code) */}
@@ -344,6 +360,7 @@ export default function WorkspacePage() {
         onClose={() => setIsAuthModalOpen(false)}
         session={session}
         onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
       />
 
       {/* Command Palette Modal */}

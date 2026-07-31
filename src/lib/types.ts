@@ -1,4 +1,4 @@
-export type StepId = 'input' | 'search' | 'gapmap' | 'devils' | 'blueprint' | 'mentor';
+export type StepId = 'input' | 'search' | 'gapmap' | 'devils' | 'blueprint' | 'mentor' | 'dashboard';
 
 export interface IdeaInputData {
   idea: string;

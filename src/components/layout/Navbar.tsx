@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { StepId } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, Globe, LayoutDashboard, type LucideIcon } from 'lucide-react';
 import { LANGUAGES, LanguageCode, getTranslation } from '@/lib/translations';
 
 interface NavbarProps {
@@ -19,6 +20,7 @@ interface NavbarProps {
   onSelectLanguage?: (lang: LanguageCode) => void;
   userEmail?: string;
   isLoggedIn?: boolean;
+  onLogout?: () => void;
 }
 
 const STEP_ORDER: StepId[] = ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'];
@@ -44,6 +46,7 @@ export default function Navbar({
   onSelectLanguage,
   userEmail,
   isLoggedIn,
+  onLogout,
 }: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
   const t = getTranslation(activeLanguage);
@@ -84,29 +87,45 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 sm:h-20 flex items-center justify-between gap-3">
           
-          {/* Brand Logo */}
-          <div 
-            onClick={() => onSelectStep('input')}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0 pr-2 select-none"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && onSelectStep('input')}
-          >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-blueprint bg-gradient-to-br from-brand-ember via-amber-molten to-quenched-steel flex items-center justify-center text-white shadow-md shadow-brand-ember/20 group-hover:scale-105 transition-transform border border-brand-ember/40 shrink-0">
-              <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
-            </div>
-            <div className="shrink-0">
-              <div className="flex items-center gap-1 font-display font-bold text-lg sm:text-xl tracking-tight text-forge-white uppercase leading-none">
-                <span>IDEA</span>
-                <span className="text-brand-ember">FORGE</span>
+          {/* Brand Logo & Top Level Navigation */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div 
+              onClick={() => onSelectStep('input')}
+              className="flex items-center gap-2.5 cursor-pointer group shrink-0 pr-2 select-none"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && onSelectStep('input')}
+            >
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-blueprint bg-gradient-to-br from-brand-ember via-amber-molten to-quenched-steel flex items-center justify-center text-white shadow-md shadow-brand-ember/20 group-hover:scale-105 transition-transform border border-brand-ember/40 shrink-0">
+                <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2} />
               </div>
-              <p className="text-[9px] sm:text-[10px] font-mono text-quenched-steel-light font-bold tracking-wider uppercase whitespace-nowrap mt-0.5">
-                Research. Build. Impact.
-              </p>
+              <div className="shrink-0">
+                <div className="flex items-center gap-1 font-display font-bold text-lg sm:text-xl tracking-tight text-forge-white uppercase leading-none">
+                  <span>IDEA</span>
+                  <span className="text-brand-ember">FORGE</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] font-mono text-quenched-steel-light font-bold tracking-wider uppercase whitespace-nowrap mt-0.5">
+                  Research. Build. Impact.
+                </p>
+              </div>
             </div>
+
+            {/* Dashboard Link / Button - Always Visible with Label */}
+            <button
+              onClick={() => onSelectStep('dashboard')}
+              className={`h-9 px-3.5 inline-flex items-center gap-2 rounded-lg text-xs font-mono font-bold transition min-h-[44px] shrink-0 shadow-sm ${
+                currentStep === 'dashboard'
+                  ? 'bg-brand-ember text-white shadow-md shadow-brand-ember/25 border border-brand-ember/50'
+                  : 'bg-brand-ember/15 border border-brand-ember/40 text-brand-ember hover:bg-brand-ember/25 hover:text-white'
+              }`}
+              title="Open Executive Dashboard"
+            >
+              <LayoutDashboard className="w-4 h-4 text-brand-ember" />
+              <span className="uppercase tracking-wider font-bold">Dashboard</span>
+            </button>
           </div>
 
-          {/* Desktop 5-Step Stepper Bar with Side Scroll & Isolated Horizontal Mouse Wheel Scroll */}
+          {/* Desktop Stepper Bar */}
           <nav
             ref={desktopNavRef}
             className="hidden lg:flex items-center bg-forge-surface/80 border border-quenched-steel/25 p-1.5 rounded-blueprint shadow-inner overflow-x-auto max-w-full min-w-0 space-x-1.5 scrollbar-thin scroll-smooth"
@@ -117,7 +136,7 @@ export default function Navbar({
                 const stepIndex = STEP_ORDER.indexOf(step.id);
                 const isCompleted = stepIndex < currentIndex;
                 const isCurrent = stepIndex === currentIndex;
-                const isDisabled = !hasInput && step.id !== 'input';
+                const isDisabled = !hasInput && step.id !== 'input' && step.id !== 'dashboard';
 
                 return (
                   <button
@@ -207,6 +226,18 @@ export default function Navbar({
 
           {/* Right Action Controls for Mobile/Tablet */}
           <div className="flex items-center gap-2 shrink-0 lg:hidden">
+            <button
+              onClick={() => onSelectStep('dashboard')}
+              className={`p-2.5 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center transition ${
+                currentStep === 'dashboard'
+                  ? 'bg-brand-ember text-white border border-brand-ember/50'
+                  : 'bg-brand-ember/15 border border-brand-ember/40 text-brand-ember'
+              }`}
+              title="Open Executive Dashboard"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+            </button>
+
             {onToggleTheme && (
               <button
                 onClick={onToggleTheme}

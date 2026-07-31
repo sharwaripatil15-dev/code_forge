@@ -37,6 +37,23 @@ export function getOrCreateSession(): UserSession {
   return newSession;
 }
 
+// 1.b. Logout User Session
+export function logoutUserSession(): UserSession {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('ideaforge_user_session');
+    localStorage.removeItem('ideaforge_last_active_plan');
+  }
+  const newSession: UserSession = {
+    email: 'builder@ideaforge.ai',
+    isLoggedIn: false,
+    telegramConnectCode: `FORGE-${Math.floor(1000 + Math.random() * 9000)}`,
+  };
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('ideaforge_user_session', JSON.stringify(newSession));
+  }
+  return newSession;
+}
+
 // 2. Magic Link Login Flow
 export async function sendMagicLink(email: string): Promise<{ success: boolean; message: string }> {
   try {

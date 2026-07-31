@@ -6,16 +6,17 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { UserSession, sendMagicLink } from '@/lib/supabase';
-import { Mail, ShieldCheck, Copy, Check, Bot, X, Sparkles, Send } from 'lucide-react';
+import { Mail, ShieldCheck, Copy, Check, Bot, X, Sparkles, Send, LogOut } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   session: UserSession;
   onLoginSuccess: (email: string) => void;
+  onLogout?: () => void;
 }
 
-export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, session, onLoginSuccess, onLogout }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -98,27 +99,46 @@ export default function AuthModal({ isOpen, onClose, session, onLoginSuccess }: 
               <Mail className="w-5 h-5" />
             </div>
             <h3 className="text-xl font-display font-extrabold text-forge-white">
-              Lightweight Supabase Auth
+              Supabase Account & Session
             </h3>
           </div>
           <p className="text-xs font-sans text-zinc-400">
-            Log in via passwordless Magic Link to save your Project HUB blueprints & link your Telegram chat.
+            Manage your authenticated session, save blueprints, and sync your Telegram AI mentor chat.
           </p>
         </div>
 
-        {/* Status Badge */}
+        {/* Status Badge & Logout Option */}
         {session.isLoggedIn ? (
           <div className="p-4 rounded-blueprint bg-emerald-500/10 border border-emerald-500/30 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-400">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Logged In as {session.email}</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-400 truncate">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span className="truncate">Logged In as {session.email}</span>
               </div>
               <Badge variant="emerald" size="sm">Active Session</Badge>
             </div>
+            
             <p className="text-[11px] font-sans text-zinc-300">
               Your generated blueprints are auto-saved to this account. Refreshing your browser will restore your workspace state.
             </p>
+
+            <div className="pt-3 border-t border-emerald-500/20 flex items-center justify-between gap-3">
+              <span className="text-xs font-mono text-zinc-400">Account Session</span>
+              {onLogout && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    onLogout();
+                    setNotice({ type: 'success', text: 'Logged out successfully!' });
+                  }}
+                  leftIcon={<LogOut className="w-4 h-4" />}
+                  className="bg-rose-600 hover:bg-rose-500 text-white font-bold border-rose-500/50 text-xs px-4"
+                >
+                  Log Out
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
