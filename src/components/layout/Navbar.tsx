@@ -4,7 +4,8 @@ import React from 'react';
 import { StepId } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
+import { LANGUAGES, LanguageCode, getTranslation } from '@/lib/translations';
 
 interface NavbarProps {
   currentStep: StepId;
@@ -14,6 +15,8 @@ interface NavbarProps {
   hasInput: boolean;
   activeTheme?: string;
   onToggleTheme?: () => void;
+  activeLanguage?: LanguageCode;
+  onSelectLanguage?: (lang: LanguageCode) => void;
   userEmail?: string;
   isLoggedIn?: boolean;
 }
@@ -37,10 +40,21 @@ export default function Navbar({
   hasInput,
   activeTheme,
   onToggleTheme,
+  activeLanguage = 'en',
+  onSelectLanguage,
   userEmail,
   isLoggedIn,
 }: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
+  const t = getTranslation(activeLanguage);
+
+  const STEPS: { id: StepId; label: string; icon: LucideIcon }[] = [
+    { id: 'input', label: t.steps.input, icon: Lightbulb },
+    { id: 'search', label: t.steps.search, icon: Search },
+    { id: 'gapmap', label: t.steps.gapmap, icon: Network },
+    { id: 'devils', label: t.steps.devils, icon: Swords },
+    { id: 'blueprint', label: t.steps.blueprint, icon: Rocket },
+  ];
 
   const desktopNavRef = React.useRef<HTMLElement>(null);
   const mobileNavRef = React.useRef<HTMLDivElement>(null);
@@ -153,6 +167,25 @@ export default function Navbar({
                   <Palette className="w-3.5 h-3.5 text-amber-molten" />
                   <span className="capitalize text-[11px] font-bold">{activeTheme || 'Forge'}</span>
                 </button>
+              )}
+
+              {/* Language Selector Dropdown */}
+              {onSelectLanguage && (
+                <div className="relative inline-flex items-center shrink-0">
+                  <Globe className="w-3.5 h-3.5 text-brand-ember absolute left-2.5 pointer-events-none z-10" />
+                  <select
+                    value={activeLanguage}
+                    onChange={(e) => onSelectLanguage(e.target.value as LanguageCode)}
+                    className="h-9 pl-7 pr-3 bg-forge-surface-light border border-quenched-steel/30 rounded-lg text-xs font-mono font-bold text-zinc-300 hover:text-white hover:border-brand-ember/50 transition appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-ember shrink-0 min-h-[44px]"
+                    title="Select Language"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang.code} value={lang.code} className="bg-zinc-900 text-white font-sans py-1">
+                        {lang.flag} {lang.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
 
               {/* Auth Trigger */}

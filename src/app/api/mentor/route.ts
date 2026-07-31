@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const { userQuery, blueprint }: { userQuery: string; blueprint: ProjectBlueprint } = await req.json();
+    const { userQuery, blueprint, language = 'en' }: { userQuery: string; blueprint: ProjectBlueprint; language?: string } = await req.json();
 
     const geminiKey = process.env.GEMINI_API_KEY;
 
@@ -33,7 +33,18 @@ export async function POST(req: Request) {
       const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
+      const languageNames: Record<string, string> = {
+        en: 'English',
+        hi: 'Hindi',
+        es: 'Spanish',
+        fr: 'French',
+        ja: 'Japanese',
+      };
+      const langName = languageNames[language] || 'English';
+
       const systemPrompt = `You are IdeaForge AI Mentor, an expert technical lead and startup co-founder guiding the developer through their specific project blueprint.
+
+CRITICAL LANGUAGE MANDATE: You MUST reply entirely in ${langName.toUpperCase()} language (${language}).
 
 PROJECT CONTEXT:
 - Title: "${blueprint.title}"
@@ -47,7 +58,7 @@ PROJECT CONTEXT:
 - Milestones: ${JSON.stringify(blueprint.milestones)}
 
 INSTRUCTIONS:
-1. Answer the developer's question directly and concisely, referencing their SPECIFIC architecture, tech stack, APIs, or milestones listed above.
+1. Answer the developer's question directly and concisely in ${langName}, referencing their SPECIFIC architecture, tech stack, APIs, or milestones listed above.
 2. Never give generic filler advice. Reference real technologies from their project context.
 3. If they report finishing a milestone, congratulate them and highlight the next milestone step.
 4. Keep responses concise (2-4 bullet points max) formatted in clean Markdown.

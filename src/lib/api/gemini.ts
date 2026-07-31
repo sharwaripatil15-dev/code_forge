@@ -6,7 +6,7 @@ import { log } from '../logger';
 import { generateDynamicPatents } from './patents';
 
 // 100% Dynamic Blueprint & Fallback Generator per idea input
-export function generateDynamicFallbackState(input: IdeaInputData, papers: any[], repos: any[], patents?: any[]): DeepSearchState {
+export function generateDynamicFallbackState(input: IdeaInputData, papers: any[], repos: any[], patents?: any[], languageCode: string = 'en'): DeepSearchState {
   const ideaWords = input.idea.split(' ').filter(w => w.length > 3);
   const keyword = ideaWords[0] || 'Core';
   const secondKeyword = ideaWords[1] || 'Engine';
@@ -24,8 +24,17 @@ export function generateDynamicFallbackState(input: IdeaInputData, papers: any[]
   const marketImpact = 82 + ((charSum * 5) % 16);
   const executionSpeed = 75 + ((charSum * 2) % 20);
 
-  const whiteSpaceTitle = `Zero-Overhead ${keyword} ${secondKeyword} Optimization Engine`;
-  const whiteSpaceDescription = `Existing solutions for "${input.idea}" are fragmented. The uncrowded opportunity space lies in an automated, low-latency ${keyword} pipeline engineered for ${input.targetUser || 'target users'}.`;
+  const languagePrefixMap: Record<string, string> = {
+    hi: '[हिन्दी विश्लेषणात्मक डोजियर] ',
+    es: '[Dossier Analítico en Español] ',
+    fr: '[Dossier Analytique en Français] ',
+    ja: '[日本語分析ドシエ] ',
+    en: '',
+  };
+  const langPrefix = languagePrefixMap[languageCode] || '';
+
+  const whiteSpaceTitle = `${langPrefix}Zero-Overhead ${keyword} ${secondKeyword} Optimization Engine`;
+  const whiteSpaceDescription = `${langPrefix}Existing solutions for "${input.idea}" are fragmented. The uncrowded opportunity space lies in an automated, low-latency ${keyword} pipeline engineered for ${input.targetUser || 'target users'}.`;
 
   // Domain-Aware Named APIs and Datasets Generation
   const lowerIdea = input.idea.toLowerCase();
@@ -527,11 +536,12 @@ export async function runGeminiSynthesis(
   papers: any[],
   repos: any[],
   patents: any[],
-  apiKey?: string
+  apiKey?: string,
+  languageCode: string = 'en'
 ): Promise<DeepSearchState | null> {
   const geminiKey = process.env.GEMINI_API_KEY;
 
-  log.info(`[DeepSearch Gemini] Request received for idea: "${input.idea}"`);
+  log.info(`[DeepSearch Gemini] Request received for idea: "${input.idea}" in language: "${languageCode}"`);
   if (!geminiKey) {
     log.info('[DeepSearch Gemini] No GEMINI_API_KEY present in process.env. Executing dynamic fallback path.');
     return null;
@@ -539,7 +549,20 @@ export async function runGeminiSynthesis(
 
   const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp'];
 
-  const prompt = `You are IdeaForge AI Copilot. Analyze the following project idea and return a JSON object with custom scores, architecture nodes, tech stack, apisAndDatasets, timeline, milestones with actionableSteps, and scaffold files tailored SPECIFICALLY TO THIS IDEA.
+  const languageMap: Record<string, string> = {
+    en: 'English',
+    hi: 'Hindi',
+    es: 'Spanish',
+    fr: 'French',
+    ja: 'Japanese',
+  };
+  const targetLanguageName = languageMap[languageCode] || 'English';
+
+  const languageInstruction = languageCode !== 'en'
+    ? `\n\nCRITICAL MULTILINGUAL MANDATE: The user has selected ${targetLanguageName} (${languageCode}) language. You MUST generate ALL human-readable text values (whiteSpaceTitle, whiteSpaceDescription, keyInnovations, executiveSummary, problemStatement, uniqueValueProposition, title, tagline, architecture node titles & descriptions, techStack rationales, milestone titles, actionableSteps, and scaffold README content) IN ${targetLanguageName.toUpperCase()} LANGUAGE (${languageCode}). Respond directly in ${targetLanguageName}.`
+    : '';
+
+  const prompt = `You are IdeaForge AI Copilot. Analyze the following project idea and return a JSON object with custom scores, architecture nodes, tech stack, apisAndDatasets, timeline, milestones with actionableSteps, and scaffold files tailored SPECIFICALLY TO THIS IDEA.${languageInstruction}
 Idea: "${input.idea}"
 Category: "${input.category || 'Tech'}"
 Target User: "${input.targetUser || 'Developers'}"

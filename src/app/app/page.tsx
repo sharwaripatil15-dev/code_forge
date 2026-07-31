@@ -16,6 +16,7 @@ import ForgeTransformation from '@/components/workflow/ForgeTransformation';
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
 import { getOrCreateSession, saveUserBlueprint, loadUserBlueprint, getUserPlansFromSupabase, UserSession } from '@/lib/supabase';
+import { LanguageCode } from '@/lib/translations';
 
 export default function WorkspacePage() {
   const [currentStep, setCurrentStep] = useState<StepId>('input');
@@ -25,6 +26,7 @@ export default function WorkspacePage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [activeTheme, setActiveTheme] = useState<'forge' | 'blueprint' | 'cyberpunk'>('forge');
+  const [activeLanguage, setActiveLanguage] = useState<LanguageCode>('en');
   const [isLoading, setIsLoading] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
 
@@ -42,7 +44,7 @@ export default function WorkspacePage() {
     }
   }, []);
 
-  // Client-side Session & Saved Blueprint Restoration with Step Persistence
+  // Client-side Session & Saved Blueprint Restoration with Step & Language Persistence
   useEffect(() => {
     const clientSession = getOrCreateSession();
     setSession(clientSession);
@@ -62,8 +64,21 @@ export default function WorkspacePage() {
       setCurrentStep('blueprint');
     }
 
+    const savedLang = (typeof window !== 'undefined' ? localStorage.getItem('ideaforge_language') : null) as LanguageCode | null;
+    if (savedLang && ['en', 'hi', 'es', 'fr', 'ja'].includes(savedLang)) {
+      setActiveLanguage(savedLang);
+    }
+
     refreshUserPlans(clientSession.email);
   }, [refreshUserPlans]);
+
+  // Helper to change language and persist in localStorage
+  const handleSelectLanguage = (lang: LanguageCode) => {
+    setActiveLanguage(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ideaforge_language', lang);
+    }
+  };
 
   // Helper to change step and persist in localStorage
   const changeStep = useCallback((step: StepId) => {
@@ -118,7 +133,7 @@ export default function WorkspacePage() {
       const response = await fetch('/api/deepsearch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input, language: activeLanguage }),
       });
 
       const resData = await response.json();
@@ -265,6 +280,8 @@ export default function WorkspacePage() {
         hasInput={hasInput}
         activeTheme={activeTheme}
         onToggleTheme={handleToggleTheme}
+        activeLanguage={activeLanguage}
+        onSelectLanguage={handleSelectLanguage}
         userEmail={session.email}
         isLoggedIn={session.isLoggedIn}
       />
@@ -275,6 +292,8 @@ export default function WorkspacePage() {
           <IdeaInputStep
             onSubmitIdea={handleIdeaSubmit}
             initialInput={searchData.input}
+            activeLanguage={activeLanguage}
+            isLoading={isLoading}
           />
         )}
 

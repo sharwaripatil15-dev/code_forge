@@ -21,10 +21,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const input: IdeaInputData = body.input;
+    const languageCode: string = body.language || 'en';
     const githubToken = process.env.GITHUB_TOKEN;
     const geminiKey = process.env.GEMINI_API_KEY;
 
-    log.info(`[1] EXACT IDEA TEXT RECEIVED: "${input?.idea}"`);
+    log.info(`[1] EXACT IDEA TEXT RECEIVED: "${input?.idea}" (Language: ${languageCode})`);
     log.info(`    Category: "${input?.category || 'Not specified'}"`);
     log.info(`    Target User: "${input?.targetUser || 'Not specified'}"`);
     log.info(`    Server API Keys Configured: Gemini=${geminiKey ? 'YES' : 'NO'}, GitHub=${githubToken ? 'YES' : 'NO'}`);
@@ -50,13 +51,13 @@ export async function POST(req: Request) {
     log.info(`[3] arXiv=${papers.length} | Competitor GitHub=${repos.length} | Patents=${patents.length} | HF Datasets=${datasets.length} | Builder Repos=${buildRepos.length}`);
 
     // Live Gemini AI synthesis
-    log.info('[4] Calling Gemini AI Synthesis...');
-    let resultState = await runGeminiSynthesis(input, papers, repos, patents, geminiKey);
+    log.info(`[4] Calling Gemini AI Synthesis for language "${languageCode}"...`);
+    let resultState = await runGeminiSynthesis(input, papers, repos, patents, geminiKey, languageCode);
     let isLive = true;
 
     if (!resultState) {
       log.info('[5] NOTICE: DYNAMIC FALLBACK PATH EXECUTED.');
-      resultState = generateDynamicFallbackState(input, papers, repos, patents);
+      resultState = generateDynamicFallbackState(input, papers, repos, patents, languageCode);
       isLive = false;
     }
 
