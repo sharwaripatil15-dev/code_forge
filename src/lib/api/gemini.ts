@@ -610,7 +610,12 @@ export async function runGeminiSynthesis(
     return null;
   }
 
-  const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp'];
+  const modelsToTry = [
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
+    'gemini-3-flash-preview',
+  ];
 
   const languageMap: Record<string, string> = {
     en: 'English',
