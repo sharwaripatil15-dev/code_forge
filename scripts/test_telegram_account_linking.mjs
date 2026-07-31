@@ -1,4 +1,4 @@
-import { getTelegramLinkStatus, linkTelegramChatId, saveTelegramLink } from './src/lib/supabase.ts';
+import { getTelegramLinkStatus, linkTelegramChatId, saveTelegramLink } from '../src/lib/supabase.ts';
 
 async function testLinkingFlow() {
   console.log('--- 1. Registering 1-Time Code FORGE-8421 for builder@ideaforge.ai in Supabase DB ---');

@@ -42,19 +42,36 @@ export default function WorkspacePage() {
     }
   }, []);
 
-  // Client-side Session & Saved Blueprint Restoration
+  // Client-side Session & Saved Blueprint Restoration with Step Persistence
   useEffect(() => {
     const clientSession = getOrCreateSession();
     setSession(clientSession);
 
     const saved = loadUserBlueprint(clientSession.email);
-    if (saved && saved.blueprint) {
+    if (saved) {
       setSearchData(saved);
+    }
+
+    const savedStep = typeof window !== 'undefined'
+      ? (localStorage.getItem('ideaforge_active_step') as StepId | null)
+      : null;
+
+    if (savedStep && ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'].includes(savedStep)) {
+      setCurrentStep(savedStep);
+    } else if (saved && saved.blueprint) {
       setCurrentStep('blueprint');
     }
 
     refreshUserPlans(clientSession.email);
   }, [refreshUserPlans]);
+
+  // Helper to change step and persist in localStorage
+  const changeStep = useCallback((step: StepId) => {
+    setCurrentStep(step);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ideaforge_active_step', step);
+    }
+  }, []);
 
   // Persist plan whenever searchData updates
   useEffect(() => {
@@ -95,7 +112,7 @@ export default function WorkspacePage() {
 
   const handleIdeaSubmit = async (input: IdeaInputData) => {
     setIsLoading(true);
-    setCurrentStep('search');
+    changeStep('search');
 
     try {
       const response = await fetch('/api/deepsearch', {
@@ -129,7 +146,7 @@ export default function WorkspacePage() {
 
   const handleSelectPlan = (plan: DeepSearchState) => {
     setSearchData(plan);
-    setCurrentStep('blueprint');
+    changeStep('blueprint');
   };
 
   const handleNewIdea = () => {
@@ -168,13 +185,14 @@ export default function WorkspacePage() {
       },
       isLive: true,
     });
-    setCurrentStep('input');
+    setHasInput(false);
+    changeStep('input');
   };
 
-  const handleUpdateQuestions = (updatedQs: DevilsAdvocateQuestion[]) => {
+  const handleUpdateQuestions = (questions: DevilsAdvocateQuestion[]) => {
     setSearchData((prev) => ({
       ...prev,
-      devilsQuestions: updatedQs,
+      devilsQuestions: questions,
     }));
   };
 
@@ -191,12 +209,12 @@ export default function WorkspacePage() {
 
   const handleTransformationComplete = () => {
     setIsTransforming(false);
-    setCurrentStep('blueprint');
+    changeStep('blueprint');
   };
 
-  const handleUpdateMilestones = (milestoneWeek: number, completed: boolean) => {
+  const handleUpdateMilestones = useCallback((milestoneWeek: number, completed: boolean) => {
     setSearchData((prev) => {
-      const updatedMilestones = prev.blueprint.milestones.map((m) =>
+      const updatedMilestones = prev.blueprint.milestones.map((m: any) =>
         m.week === milestoneWeek ? { ...m, completed } : m
       );
       return {
@@ -207,14 +225,17 @@ export default function WorkspacePage() {
         },
       };
     });
-  };
+  }, []);
 
-  const handleUpdateMentorMessages = (msgs: Array<{ sender: 'bot' | 'user'; text: string; time: string }>) => {
-    setSearchData((prev) => ({
-      ...prev,
-      mentorChatHistory: msgs,
-    }));
-  };
+  const handleUpdateMentorMessages = useCallback((msgs: Array<{ sender: 'bot' | 'user'; text: string; time: string }>) => {
+    setSearchData((prev) => {
+      if (JSON.stringify(prev.mentorChatHistory) === JSON.stringify(msgs)) return prev;
+      return {
+        ...prev,
+        mentorChatHistory: msgs,
+      };
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-forge-black text-forge-white flex flex-col selection:bg-brand-ember selection:text-white font-sans relative">
@@ -238,7 +259,7 @@ export default function WorkspacePage() {
       {/* Top Navbar */}
       <Navbar
         currentStep={currentStep}
-        onSelectStep={setCurrentStep}
+        onSelectStep={changeStep}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         hasInput={hasInput}
@@ -260,14 +281,14 @@ export default function WorkspacePage() {
         {currentStep === 'search' && (
           <DeepSearchStep
             data={searchData}
-            onContinue={() => setCurrentStep('gapmap')}
+            onContinue={() => changeStep('gapmap')}
           />
         )}
 
         {currentStep === 'gapmap' && (
           <GapMapStep
             data={searchData}
-            onContinue={() => setCurrentStep('devils')}
+            onContinue={() => changeStep('devils')}
           />
         )}
 
@@ -283,14 +304,14 @@ export default function WorkspacePage() {
         {currentStep === 'blueprint' && (
           <ProjectHubStep
             blueprint={searchData.blueprint}
-            onOpenTelegramMentor={() => setCurrentStep('mentor')}
+            onOpenTelegramMentor={() => changeStep('mentor')}
           />
         )}
 
         {currentStep === 'mentor' && (
           <MentorStep
             blueprint={searchData.blueprint}
-            onBackToBlueprint={() => setCurrentStep('blueprint')}
+            onBackToBlueprint={() => changeStep('blueprint')}
             onUpdateMilestones={handleUpdateMilestones}
             initialMessages={searchData.mentorChatHistory}
             onUpdateMessages={handleUpdateMentorMessages}
@@ -310,8 +331,8 @@ export default function WorkspacePage() {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onSelectStep={setCurrentStep}
-        onLaunchMentor={() => setCurrentStep('mentor')}
+        onSelectStep={changeStep}
+        onLaunchMentor={() => changeStep('mentor')}
       />
 
       {/* Blueprint Footer */}
