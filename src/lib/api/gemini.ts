@@ -24,17 +24,30 @@ export function generateDynamicFallbackState(input: IdeaInputData, papers: any[]
   const marketImpact = 82 + ((charSum * 5) % 16);
   const executionSpeed = 75 + ((charSum * 2) % 20);
 
-  const languagePrefixMap: Record<string, string> = {
-    hi: '[हिन्दी विश्लेषणात्मक डोजियर] ',
-    es: '[Dossier Analítico en Español] ',
-    fr: '[Dossier Analytique en Français] ',
-    ja: '[日本語分析ドシエ] ',
-    en: '',
-  };
-  const langPrefix = languagePrefixMap[languageCode] || '';
+  const isHindi = languageCode === 'hi';
+  const isSpanish = languageCode === 'es';
+  const isFrench = languageCode === 'fr';
+  const isJapanese = languageCode === 'ja';
 
-  const whiteSpaceTitle = `${langPrefix}Zero-Overhead ${keyword} ${secondKeyword} Optimization Engine`;
-  const whiteSpaceDescription = `${langPrefix}Existing solutions for "${input.idea}" are fragmented. The uncrowded opportunity space lies in an automated, low-latency ${keyword} pipeline engineered for ${input.targetUser || 'target users'}.`;
+  const whiteSpaceTitle = isHindi
+    ? `शून्य-ओवरहेड ${keyword} ${secondKeyword} अनुकूलन और विश्लेषण इंजन`
+    : isSpanish
+    ? `Motor de Optimización y Análisis ${keyword} ${secondKeyword} de Cero Sobrecarga`
+    : isFrench
+    ? `Moteur d'Optimisation et d'Analyse ${keyword} ${secondKeyword} sans Surcharge`
+    : isJapanese
+    ? `ゼロオーバーヘッド ${keyword} ${secondKeyword} 最適化および分析エンジン`
+    : `Zero-Overhead ${keyword} ${secondKeyword} Optimization Engine`;
+
+  const whiteSpaceDescription = isHindi
+    ? `"${input.idea}" के लिए मौजूदा समाधान बिखरे हुए हैं। बिना भीड़ वाला अवसर स्थान ${input.targetUser || 'लक्ष्य उपयोगकर्ताओं'} के लिए एक स्वचालित, कम-विलंबता ${keyword} पाइपलाइन में निहित है।`
+    : isSpanish
+    ? `Las soluciones existentes para "${input.idea}" están fragmentadas. La oportunidad radica en una canalización ${keyword} automatizada de baja latencia para ${input.targetUser || 'usuarios objetivo'}.`
+    : isFrench
+    ? `Les solutions existantes pour "${input.idea}" sont fragmentées. L'opportunité réside dans un pipeline ${keyword} automatisé à faible latence pour ${input.targetUser || 'utilisateurs cibles'}.`
+    : isJapanese
+    ? `"${input.idea}" の既存のソリューションは断片化されています。未開拓の機会は、${input.targetUser || 'ターゲットユーザー'} 向けに設計された自動化された低遅延の ${keyword} パイプラインにあります。`
+    : `Existing solutions for "${input.idea}" are fragmented. The uncrowded opportunity space lies in an automated, low-latency ${keyword} pipeline engineered for ${input.targetUser || 'target users'}.`;
 
   // Domain-Aware Named APIs and Datasets Generation
   const lowerIdea = input.idea.toLowerCase();
@@ -505,27 +518,77 @@ export function generateDynamicFallbackState(input: IdeaInputData, papers: any[]
       executionSpeed,
       whiteSpaceTitle,
       whiteSpaceDescription,
-      keyInnovations: [
-        `Dynamic ${keyword} processing engine`,
-        `Automated ${secondKeyword} verification loop`,
-        `Tailored workflow for ${input.targetUser || 'target users'}`,
-      ],
+      keyInnovations: isHindi
+        ? [`डायनामिक ${keyword} प्रोसेसिंग इंजन`, `स्वचालित ${secondKeyword} सत्यापन लूप`, `${input.targetUser || 'लक्ष्य उपयोगकर्ताओं'} के लिए तैयार कार्यप्रवाह`]
+        : isSpanish
+        ? [`Motor de procesamiento dinámico ${keyword}`, `Bucle de verificación automatizado ${secondKeyword}`, `Flujo de trabajo adaptado para ${input.targetUser || 'usuarios'}`]
+        : isFrench
+        ? [`Moteur de traitement dynamique ${keyword}`, `Boucle de vérification automatisée ${secondKeyword}`, `Flux de travail adapté pour ${input.targetUser || 'utilisateurs'}`]
+        : isJapanese
+        ? [`ダイナミック ${keyword} 処理エンジン`, `自動 ${secondKeyword} 検証ループ`, `${input.targetUser || 'ターゲットユーザー'} 向けワークフロー`]
+        : [
+            `Dynamic ${keyword} processing engine`,
+            `Automated ${secondKeyword} verification loop`,
+            `Tailored workflow for ${input.targetUser || 'target users'}`,
+          ],
     },
     nodes,
     devilsQuestions,
     blueprint: {
-      title: `IdeaForge Blueprint: ${keyword} ${secondKeyword}`,
-      tagline: `Implementation Blueprint for ${input.idea.slice(0, 45)}`,
-      problemStatement: `Engineering challenge for ${input.targetUser || 'users'}: "${input.idea}"`,
-      executiveSummary: `This project delivers a specialized ${keyword} platform tailored for ${input.targetUser || 'users'}. It addresses existing gaps by combining lightweight AST parsing with neural reasoning.`,
-      uniqueValueProposition: `10x faster ${keyword} execution with zero setup overhead.`,
+      title: isHindi
+        ? `आइडियाफोर्ज ब्लूप्रिंट: ${keyword} ${secondKeyword}`
+        : isSpanish
+        ? `Plan IdeaForge: ${keyword} ${secondKeyword}`
+        : isFrench
+        ? `Plan d'action IdeaForge: ${keyword} ${secondKeyword}`
+        : isJapanese
+        ? `IdeaForge ブループリント: ${keyword} ${secondKeyword}`
+        : `IdeaForge Blueprint: ${keyword} ${secondKeyword}`,
+      tagline: isHindi
+        ? `${input.idea.slice(0, 45)} के लिए कार्यान्वयन योजना`
+        : isSpanish
+        ? `Plan de implementación para ${input.idea.slice(0, 45)}`
+        : isFrench
+        ? `Plan de mise en œuvre pour ${input.idea.slice(0, 45)}`
+        : isJapanese
+        ? `${input.idea.slice(0, 45)} の実装ブループリント`
+        : `Implementation Blueprint for ${input.idea.slice(0, 45)}`,
+      problemStatement: isHindi
+        ? `${input.targetUser || 'उपयोगकर्ताओं'} के लिए तकनीकी चुनौती: "${input.idea}"`
+        : isSpanish
+        ? `Desafío de ingeniería para ${input.targetUser || 'usuarios'}: "${input.idea}"`
+        : isFrench
+        ? `Défi d'ingénierie pour ${input.targetUser || 'utilisateurs'}: "${input.idea}"`
+        : isJapanese
+        ? `${input.targetUser || 'ユーザー'} のエンジニアリング上の課題: "${input.idea}"`
+        : `Engineering challenge for ${input.targetUser || 'users'}: "${input.idea}"`,
+      executiveSummary: isHindi
+        ? `यह परियोजना ${input.targetUser || 'उपयोगकर्ताओं'} के लिए तैयार किया गया एक विशेष ${keyword} प्लेटफॉर्म प्रदान करती है। यह न्यूरल रीज़निंग के साथ हल्के विश्लेषण को मिलाकर मौजूदा अंतराल को संबोधित करता है।`
+        : isSpanish
+        ? `Este proyecto ofrece una plataforma ${keyword} especializada para ${input.targetUser || 'usuarios'}. Aborda las brechas existentes combinando el análisis ligero con el razonamiento neuronal.`
+        : isFrench
+        ? `Ce projet fournit une plate-forme ${keyword} spécialisée pour ${input.targetUser || 'utilisateurs'}. Il comble les lacunes existantes en combinant une analyse légère avec un raisonnement neuronal.`
+        : isJapanese
+        ? `このプロジェクトは、${input.targetUser || 'ユーザー'} 向けに調整された専門的な ${keyword} プラットフォームを提供します。ニューラル推論と軽量な解析を組み合わせることで、既存のギャップに対処します。`
+        : `This project delivers a specialized ${keyword} platform tailored for ${input.targetUser || 'users'}. It addresses existing gaps by combining lightweight AST parsing with neural reasoning.`,
+      uniqueValueProposition: isHindi
+        ? `शून्य सेटअप ओवरहेड के साथ 10 गुना तेज़ ${keyword} निष्पादन और स्वचालित सत्यापन।`
+        : isSpanish
+        ? `Ejecución y verificación automatizada de ${keyword} 10 veces más rápida con cero costos iniciales.`
+        : isFrench
+        ? `Exécution et vérification automatisée de ${keyword} 10x plus rapides sans frais de configuration.`
+        : isJapanese
+        ? `セットアップオーバーヘッドゼロで10倍高速な ${keyword} 実行と自動検証。`
+        : `10x faster ${keyword} execution with zero setup overhead.`,
       architectureNodes,
       techStack,
       apisAndDatasets,
       timeline,
       milestones,
       scaffoldFiles,
-      telegramMentorPrompt: `🤖 *IdeaForge AI Mentor*: Milestone 1 checklist for ${keyword} ${secondKeyword} is ready! Have you initialized your repository?`,
+      telegramMentorPrompt: isHindi
+        ? `🤖 *IdeaForge AI Mentor*: ${keyword} ${secondKeyword} के लिए चेकलिस्ट तैयार है! क्या आपने अपना रिपॉजिटरी शुरू किया है?`
+        : `🤖 *IdeaForge AI Mentor*: Milestone 1 checklist for ${keyword} ${secondKeyword} is ready! Have you initialized your repository?`,
     },
     isLive: false,
   };
