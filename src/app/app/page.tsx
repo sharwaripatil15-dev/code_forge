@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/layout/Navbar';
-import AuthModal from '@/components/auth/AuthModal';
-import { CommandPalette } from '@/components/ui/CommandPalette';
-import { PlanHistorySidebar } from '@/components/layout/PlanHistorySidebar';
 import IdeaInputStep from '@/components/workflow/IdeaInputStep';
 import DeepSearchStep from '@/components/workflow/DeepSearchStep';
 import GapMapStep from '@/components/workflow/GapMapStep';
@@ -12,6 +10,10 @@ import DevilsAdvocateStep from '@/components/workflow/DevilsAdvocateStep';
 import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
 import ForgeTransformation from '@/components/workflow/ForgeTransformation';
+
+const AuthModal = dynamic(() => import('@/components/auth/AuthModal'), { ssr: false });
+const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette').then((m) => m.CommandPalette), { ssr: false });
+const PlanHistorySidebar = dynamic(() => import('@/components/layout/PlanHistorySidebar').then((m) => m.PlanHistorySidebar), { ssr: false });
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';

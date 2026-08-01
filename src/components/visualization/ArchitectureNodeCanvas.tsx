@@ -7,13 +7,18 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Cpu, X, Code, ExternalLink, Play, Layers, Box } from 'lucide-react';
 
-import Architecture3DCanvas from './Architecture3DCanvas';
+import dynamic from 'next/dynamic';
+
+const Architecture3DCanvas = dynamic(() => import('./Architecture3DCanvas'), {
+  ssr: false,
+  loading: () => <div className="h-[440px] bg-forge-black rounded-blueprint flex items-center justify-center text-xs font-mono text-cyan-400 animate-pulse">Initializing Three.js WebGL Engine...</div>
+});
 
 interface ArchitectureNodeCanvasProps {
   nodes: ArchitectureNode[];
 }
 
-export default function ArchitectureNodeCanvas({ nodes }: ArchitectureNodeCanvasProps) {
+function ArchitectureNodeCanvas({ nodes }: ArchitectureNodeCanvasProps) {
   const [selectedNode, setSelectedNode] = useState<ArchitectureNode | null>(null);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
@@ -190,3 +195,5 @@ export async function POST(req: Request) {
     </Card>
   );
 }
+
+export default React.memo(ArchitectureNodeCanvas);

@@ -1,13 +1,21 @@
 'use client';
 
-import React from 'react';
+import dynamic from 'next/dynamic';
 import { DeepSearchState } from '@/lib/types';
-import GapMapGraph from '../visualization/GapMapGraph';
-import IdeaRadarChart from '../visualization/IdeaRadarChart';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { ArrowRight, Network } from 'lucide-react';
+
+const GapMapGraph = dynamic(() => import('../visualization/GapMapGraph'), {
+  ssr: false,
+  loading: () => <div className="h-[480px] bg-forge-black rounded-blueprint flex items-center justify-center text-xs font-mono text-zinc-500">Loading Interactive D3 Gap Graph...</div>
+});
+
+const IdeaRadarChart = dynamic(() => import('../visualization/IdeaRadarChart'), {
+  ssr: false,
+  loading: () => <div className="h-[220px] bg-forge-black rounded-blueprint flex items-center justify-center text-xs font-mono text-zinc-500">Loading Radar Chart...</div>
+});
 
 interface GapMapStepProps {
   data: DeepSearchState;

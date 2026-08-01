@@ -4,13 +4,13 @@ import React from 'react';
 import { StepId } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
 import { LANGUAGES, LanguageCode, getTranslation } from '@/lib/translations';
 
 interface NavbarProps {
   currentStep: StepId;
   onSelectStep: (step: StepId) => void;
-  onOpenCommandPalette: () => void;
+  onOpenCommandPalette?: () => void;
   onOpenAuthModal?: () => void;
   hasInput: boolean;
   activeTheme?: string;
@@ -148,15 +148,6 @@ export default function Navbar({
             <div className="h-5 w-px bg-quenched-steel/30 mx-2 shrink-0" />
 
             <div className="flex items-center gap-1.5 shrink-0">
-              {/* Command K Trigger */}
-              <button
-                onClick={onOpenCommandPalette}
-                className="h-9 px-3 inline-flex items-center gap-2 rounded-lg bg-forge-surface-light border border-quenched-steel/30 text-xs font-mono text-zinc-300 hover:text-white hover:border-brand-ember/50 transition min-h-[44px] shrink-0"
-              >
-                <Command className="w-3.5 h-3.5 text-brand-ember" />
-                <span className="font-bold">Cmd+K</span>
-              </button>
-
               {/* Theme Switcher Toggle */}
               {onToggleTheme && (
                 <button
@@ -226,14 +217,6 @@ export default function Navbar({
                 <User className="w-4 h-4" />
               </button>
             )}
-
-            <button
-              onClick={onOpenCommandPalette}
-              className="p-2.5 rounded-lg bg-forge-surface border border-brand-ember/40 text-brand-ember min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Command Palette"
-            >
-              <Command className="w-4 h-4" />
-            </button>
           </div>
         </div>
 

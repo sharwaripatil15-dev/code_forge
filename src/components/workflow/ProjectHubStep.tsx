@@ -154,7 +154,19 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
             <Download className="w-3.5 h-3.5 mr-1" /> Scaffold (.ZIP)
           </Button>
 
-          {/* Clean Dropdown Menu */}
+          {/* Prominent Create GitHub Repo Button */}
+          <Button
+            variant="quenched"
+            size="sm"
+            isLoading={isCreatingRepo}
+            onClick={() => handleCreateRepo()}
+            leftIcon={<GitBranch className="w-3.5 h-3.5 text-white" />}
+            className="text-xs font-mono bg-purple-500/20 border-purple-500/40 text-purple-300 hover:bg-purple-500/30 font-bold"
+          >
+            Create GitHub Repo
+          </Button>
+
+          {/* Clean Secondary Tools Dropdown Menu */}
           <div className="relative">
             <Button
               variant="outline"
@@ -206,18 +218,6 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
                 </button>
 
                 <div className="pt-1 border-t border-quenched-steel/20">
-                  <button
-                    onClick={() => {
-                      setIsToolsDropdownOpen(false);
-                      handleCreateRepo();
-                    }}
-                    className="w-full text-left p-2 rounded-lg hover:bg-forge-black flex items-center justify-between text-xs font-mono text-white transition"
-                  >
-                    <span className="flex items-center gap-2">
-                      <GitBranch className="w-4 h-4 text-white" /> Create GitHub Repo
-                    </span>
-                  </button>
-
                   <button
                     onClick={() => {
                       setIsToolsDropdownOpen(false);
