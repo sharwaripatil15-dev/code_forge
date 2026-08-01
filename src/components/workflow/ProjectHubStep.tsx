@@ -177,48 +177,6 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
             Create GitHub Repo
           </Button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => {
-              const el = document.getElementById('architecture-canvas-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="text-xs font-mono bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
-          >
-            <Box className="w-3.5 h-3.5 mr-1 text-cyan-400 animate-pulse" /> 3D Architecture
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsPitchDeckOpen(true)}
-            className="text-xs font-mono bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
-          >
-            <Play className="w-3.5 h-3.5 mr-1 fill-amber-300" /> Pitch Deck
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsScaffoldModalOpen(true)}
-            className="text-xs font-mono bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" /> Scaffold (.ZIP)
-          </Button>
-
-          {/* Prominent Create GitHub Repo Button */}
-          <Button
-            variant="quenched"
-            size="sm"
-            isLoading={isCreatingRepo}
-            onClick={() => handleCreateRepo()}
-            leftIcon={<GitBranch className="w-3.5 h-3.5 text-white" />}
-            className="text-xs font-mono bg-purple-500/20 border-purple-500/40 text-purple-300 hover:bg-purple-500/30 font-bold"
-          >
-            Create GitHub Repo
-          </Button>
-
           {/* Clean Secondary Tools Dropdown Menu */}
           <div className="relative">
             <Button
