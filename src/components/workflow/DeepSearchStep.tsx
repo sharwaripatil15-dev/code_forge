@@ -13,7 +13,7 @@ interface DeepSearchStepProps {
 }
 
 export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps) {
-  const [activeTab, setActiveTab] = useState<'all' | 'papers' | 'repos' | 'patents' | 'web'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'papers' | 'repos' | 'patents'>('all');
   const [progress, setProgress] = useState(0);
   const [isScanning, setIsScanning] = useState(true);
 
@@ -233,15 +233,6 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           >
             Google Patents ({patentsList.length})
           </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'web' ? 'primary' : 'ghost'}
-            onClick={() => setActiveTab('web')}
-            leftIcon={<Globe className="w-3.5 h-3.5" />}
-          >
-            Web Intel ({data.webInsights.length})
-          </Button>
         </div>
       </div>
 
@@ -356,7 +347,7 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
           ))}
 
         {/* Web Insights */}
-        {(activeTab === 'all' || activeTab === 'web') &&
+        {activeTab === 'all' &&
           data.webInsights.map((web) => (
             <Card key={web.id} variant="interactive" className="space-y-4 group">
               <div className="flex items-center gap-2">
@@ -387,4 +378,3 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
     </div>
   );
 }
-
