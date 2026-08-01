@@ -1,6 +1,6 @@
 import { DeepSearchState } from '../types';
 
-export const SAMPLE_IDEAS = [
+export const SAMPLE_IDEAS_POOL = [
   {
     title: 'Autonomous AI Code Reviewer & Security Guardrail',
     description: 'An AI agent that inspects pull requests, runs AST analysis, detects security zero-days, and generates verified patch suggestions directly in GitHub PR comments.',
@@ -18,8 +18,101 @@ export const SAMPLE_IDEAS = [
     description: 'Smart P2P solar energy router using IoT micro-controllers and zero-knowledge proofs to trade surplus renewable energy across neighborhood micro-grids.',
     category: 'CleanTech & IoT',
     targetUser: 'Solar Homeowners & Local Energy Cooperatives'
+  },
+  {
+    title: 'Zero-Knowledge Cross-Chain Payment Escrow',
+    description: 'Smart contract protocol executing privacy-preserving atomic swaps across EVM chains using zk-SNARK verifiers and WebSocket event listeners.',
+    category: 'FinTech & Web3',
+    targetUser: 'DeFi Traders & Liquidity Providers'
+  },
+  {
+    title: 'Autonomous Firmware Binary Vulnerability Fuzzer',
+    description: 'AI-driven fuzzer inspecting IoT firmware ELF binaries via QEMU emulation and dynamic taint analysis to patch buffer overflow exploits.',
+    category: 'Cybersecurity',
+    targetUser: 'Security Engineers & DevSecOps Teams'
+  },
+  {
+    title: 'Hyperspectral Crop Yield Neural Forecaster',
+    description: 'Edge computer vision pipeline processing multispectral satellite imagery and soil telemetry to predict crop yield anomalies before harvest.',
+    category: 'Agritech & Sustainability',
+    targetUser: 'Agronomists & Precision Farmers'
+  },
+  {
+    title: 'Adaptive Socratic AI Coding Tutor',
+    description: 'Interactive IDE copilot providing step-by-step guidance and architectural hints for computer science students without revealing direct solutions.',
+    category: 'EdTech & Productivity',
+    targetUser: 'CS Students & Bootcamp Instructors'
+  },
+  {
+    title: 'Spatial Haptic AR Surgical Navigator',
+    description: 'Real-time WebGL and Spatial Computing overlay projecting 3D vascular organ models onto AR headsets for minimally invasive surgical guidance.',
+    category: 'AR/VR & Gaming',
+    targetUser: 'Surgical Trainees & Medical Specialists'
+  },
+  {
+    title: 'Satellite Orbital Debris Radar Tracking Mesh',
+    description: 'Low-latency telemetry processing pipeline modeling orbital collision probabilities and trajectory maneuvers for CubeSat constellations.',
+    category: 'Space & Aerospace',
+    targetUser: 'Satellite Operators & Space Agencies'
+  },
+  {
+    title: 'Neural EEG Seizure Pattern Detector',
+    description: 'Edge AI wearable ingesting multi-channel EEG signals via Bluetooth Low Energy to detect pre-ictal brainwave anomalies minutes before onset.',
+    category: 'Healthcare & BioTech',
+    targetUser: 'Neurologists & Epilepsy Caregivers'
+  },
+  {
+    title: 'Autonomous Rover Obstacle Navigation Agent',
+    description: 'Reinforcement learning ROS2 node processing stereo camera depth maps for real-time path planning in unstructured off-road environments.',
+    category: 'Robotics & Hardware',
+    targetUser: 'Robotics Engineers & Field Researchers'
+  },
+  {
+    title: 'DeFi Flash-Loan Arbitrage & Guardrail Router',
+    description: 'Sub-second smart contract monitor detecting liquidations and routing MEV-protected transactions across decentralized exchanges.',
+    category: 'FinTech & Web3',
+    targetUser: 'Quantitative Algorithmic Traders'
   }
 ];
+
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function getRandomSampleIdeas(count: number = 3, excludeTitles: string[] = []): typeof SAMPLE_IDEAS_POOL {
+  const available = SAMPLE_IDEAS_POOL.filter(idea => !excludeTitles.includes(idea.title));
+  const pool = available.length >= count ? available : SAMPLE_IDEAS_POOL;
+  const shuffled = shuffleArray(pool);
+  
+  const selected: typeof SAMPLE_IDEAS_POOL = [];
+  const usedCategories = new Set<string>();
+
+  for (const idea of shuffled) {
+    if (selected.length >= count) break;
+    if (!usedCategories.has(idea.category)) {
+      selected.push(idea);
+      usedCategories.add(idea.category);
+    }
+  }
+
+  if (selected.length < count) {
+    for (const idea of shuffled) {
+      if (selected.length >= count) break;
+      if (!selected.some(s => s.title === idea.title)) {
+        selected.push(idea);
+      }
+    }
+  }
+
+  return selected;
+}
+
+export const SAMPLE_IDEAS = SAMPLE_IDEAS_POOL.slice(0, 3);
 
 export const MOCK_DATASETS: Record<string, DeepSearchState> = {
   default: {

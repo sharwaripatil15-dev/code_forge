@@ -177,6 +177,16 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
             Create GitHub Repo
           </Button>
 
+          <Button
+            variant="quenched"
+            size="md"
+            onClick={onOpenTelegramMentor}
+            leftIcon={<Send className="w-4 h-4 text-sky-400" />}
+            className="w-full sm:w-auto justify-center min-h-[44px]"
+          >
+            Telegram Alerts
+          </Button>
+
           {/* Clean Secondary Tools Dropdown Menu */}
           <div className="relative">
             <Button
