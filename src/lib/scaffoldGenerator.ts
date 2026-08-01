@@ -1,0 +1,197 @@
+import JSZip from 'jszip';
+import { ProjectBlueprint } from '@/lib/types';
+
+export async function generateProjectZip(blueprint: ProjectBlueprint, framework: 'nextjs' | 'express' | 'vite' = 'nextjs') {
+  const zip = new JSZip();
+  const projectName = (blueprint.title || 'ideaforge-project')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '-')
+    .replace(/-+/g, '-');
+
+  const packageJson = {
+    name: projectName,
+    version: '0.1.0',
+    private: true,
+    scripts: {
+      dev: framework === 'express' ? 'node server.js' : 'next dev',
+      build: framework === 'express' ? 'echo "No build needed"' : 'next build',
+      start: framework === 'express' ? 'node server.js' : 'next start',
+      lint: 'next lint',
+    },
+    dependencies: {
+      '@google/generative-ai': '^0.24.1',
+      '@supabase/supabase-js': '^2.111.0',
+      next: '14.2.35',
+      react: '^18',
+      'react-dom': '^18',
+      clsx: '^2.1.1',
+      'lucide-react': '^1.27.0',
+      'tailwind-merge': '^3.6.0',
+    },
+    devDependencies: {
+      typescript: '^5',
+      '@types/node': '^20',
+      '@types/react': '^18',
+      tailwindcss: '^3.4.1',
+    },
+  };
+  zip.file('package.json', JSON.stringify(packageJson, null, 2));
+
+  const readmeContent = `# ${blueprint.title || 'IdeaForge Generated Project'}
+
+> ${blueprint.tagline || 'AI-Validated Production Project Blueprint'}
+
+## Problem Statement
+${blueprint.problemStatement || 'Automated execution pipeline.'}
+
+## Proposed Solution & Unique Moat
+${blueprint.uniqueValueProposition || blueprint.executiveSummary || 'Next.js 14 App Router + Gemini AI + Supabase Backend.'}
+
+## Tech Stack Overview
+${(blueprint.techStack || []).map((t) => `- **${t.category}**: ${t.chosen}`).join('\n')}
+
+## Getting Started
+
+1. Install dependencies:
+\`\`\`bash
+npm install
+\`\`\`
+
+2. Copy environment variables:
+\`\`\`bash
+cp .env.example .env.local
+\`\`\`
+
+3. Run development server:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+Open [http://localhost:3000](http://localhost:3000) with your browser.
+`;
+  zip.file('README.md', readmeContent);
+
+  zip.file(
+    '.env.example',
+    `# Google Gemini AI Key
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Supabase Postgres Database Key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+`
+  );
+
+  const sqlContent = `-- Supabase Database Migration Schema
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
+`;
+  zip.file('schema.sql', sqlContent);
+
+  const dockerContent = `FROM node:20-alpine AS base
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+`;
+  zip.file('Dockerfile', dockerContent);
+
+  const tsConfig = {
+    compilerOptions: {
+      target: 'es5',
+      lib: ['dom', 'dom.iterable', 'esnext'],
+      allowJs: true,
+      skipLibCheck: true,
+      strict: true,
+      noEmit: true,
+      esModuleInterop: true,
+      module: 'esnext',
+      moduleResolution: 'bundler',
+      resolveJsonModule: true,
+      isolatedModules: true,
+      jsx: 'preserve',
+      incremental: true,
+      paths: {
+        '@/*': ['./src/*'],
+      },
+    },
+    include: ['next-env.d.ts', '**/*.ts', '**/*.tsx'],
+    exclude: ['node_modules'],
+  };
+  zip.file('tsconfig.json', JSON.stringify(tsConfig, null, 2));
+
+  const geminiSdkContent = `import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const apiKey = process.env.GEMINI_API_KEY || '';
+export const genAI = new GoogleGenerativeAI(apiKey);
+
+export async function askGemini(prompt: string) {
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+`;
+  zip.file('src/lib/gemini.ts', geminiSdkContent);
+
+  const supabaseClientContent = `import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder_key';
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+`;
+  zip.file('src/lib/supabase.ts', supabaseClientContent);
+
+  const appPageContent = `'use client';
+
+import React from 'react';
+
+export default function HomePage() {
+  return (
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-8 font-sans">
+      <div className="max-w-2xl text-center space-y-4">
+        <h1 className="text-4xl font-extrabold tracking-tight">
+          Welcome to ${blueprint.title || 'Your Project'}
+        </h1>
+        <p className="text-zinc-400">
+          ${blueprint.tagline || 'Starter Scaffold generated by IdeaForge.'}
+        </p>
+      </div>
+    </main>
+  );
+}
+`;
+  zip.file('src/app/page.tsx', appPageContent);
+
+  const apiRouteContent = `import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({
+    status: 'ONLINE',
+    project: '${blueprint.title || 'IdeaForge Project'}',
+    timestamp: new Date().toISOString(),
+  });
+}
+`;
+  zip.file('src/app/api/route.ts', apiRouteContent);
+
+  const content = await zip.generateAsync({ type: 'blob' });
+
+  const url = URL.createObjectURL(content);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${projectName}-scaffold.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

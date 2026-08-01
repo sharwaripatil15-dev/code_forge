@@ -47,7 +47,7 @@ function checkIsOpportunity(node: GapNode): boolean {
   );
 }
 
-export default function GapMapGraph({ nodes, whiteSpaceTitle, whiteSpaceDescription }: GapMapGraphProps) {
+function GapMapGraph({ nodes, whiteSpaceTitle, whiteSpaceDescription }: GapMapGraphProps) {
   const [selectedNode, setSelectedNode] = useState<GapNode | null>(null);
 
   // Normalize nodes list to guarantee an opportunity node exists
@@ -388,4 +388,6 @@ export default function GapMapGraph({ nodes, whiteSpaceTitle, whiteSpaceDescript
     </Card>
   );
 }
+
+export default React.memo(GapMapGraph);
 

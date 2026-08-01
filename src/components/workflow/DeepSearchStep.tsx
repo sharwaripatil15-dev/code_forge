@@ -77,14 +77,25 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
 
       {/* Scanning Progress Gauge */}
       {isScanning && (
-        <Card variant="solid" className="p-5 space-y-3 shadow-sm border-quenched-steel/30">
+        <Card variant="solid" className="p-5 space-y-3 shadow-sm border-brand-ember/30 bg-forge-surface/90">
           <div className="flex justify-between text-xs font-mono font-bold text-forge-white uppercase tracking-wider">
-            <span>Synthesizing arXiv + GitHub + Google Patents knowledge clusters...</span>
+            <span className="flex items-center gap-2 text-brand-ember">
+              <span className="inline-block w-2 h-2 rounded-full bg-brand-ember animate-ping" />
+              {progress < 25
+                ? '🔍 Stage 1/5: Querying academic research papers (arXiv)...'
+                : progress < 50
+                ? '🐙 Stage 2/5: Searching GitHub open-source repositories...'
+                : progress < 75
+                ? '📜 Stage 3/5: Auditing Google Patent prior-art & Hugging Face datasets...'
+                : progress < 95
+                ? '🧠 Stage 4/5: Synthesizing competitive market gaps & metrics...'
+                : '✅ Stage 5/5: Search Dossier & Citation Claims Ready!'}
+            </span>
             <span className="text-brand-ember font-mono">{progress}%</span>
           </div>
           <div className="w-full bg-forge-surface-light h-2.5 rounded-full overflow-hidden border border-quenched-steel/20">
             <div
-              className="bg-gradient-to-r from-brand-ember via-amber-molten to-brand-ember h-full transition-all duration-300"
+              className="bg-gradient-to-r from-brand-ember via-amber-molten to-cyan-400 h-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -161,7 +172,7 @@ export default function DeepSearchStep({ data, onContinue }: DeepSearchStepProps
                   <span className="text-zinc-400 text-[10px]">{claim.authorOrMeta}</span>
                 </div>
 
-                <p className="text-xs font-sans text-zinc-200 leading-relaxed font-medium">
+                <p className="text-xs font-sans text-zinc-200 leading-relaxed font-medium line-clamp-3">
                   "{claim.claimSentence}"
                 </p>
 

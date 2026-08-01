@@ -11,7 +11,7 @@ interface IdeaRadarChartProps {
   metrics: GapMetrics;
 }
 
-export default function IdeaRadarChart({ metrics }: IdeaRadarChartProps) {
+function IdeaRadarChart({ metrics }: IdeaRadarChartProps) {
   const radarData = [
     { subject: 'Novelty', value: metrics.noveltyScore, fullMark: 100 },
     { subject: 'Feasibility', value: metrics.feasibilityScore, fullMark: 100 },
@@ -100,3 +100,5 @@ export default function IdeaRadarChart({ metrics }: IdeaRadarChartProps) {
     </Card>
   );
 }
+
+export default React.memo(IdeaRadarChart);

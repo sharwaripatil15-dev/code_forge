@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/layout/Navbar';
-import AuthModal from '@/components/auth/AuthModal';
-import { CommandPalette } from '@/components/ui/CommandPalette';
-import { PlanHistorySidebar } from '@/components/layout/PlanHistorySidebar';
 import IdeaInputStep from '@/components/workflow/IdeaInputStep';
 import DeepSearchStep from '@/components/workflow/DeepSearchStep';
 import GapMapStep from '@/components/workflow/GapMapStep';
@@ -13,6 +11,10 @@ import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
 import DashboardStep from '@/components/workflow/DashboardStep';
 import ForgeTransformation from '@/components/workflow/ForgeTransformation';
+
+const AuthModal = dynamic(() => import('@/components/auth/AuthModal'), { ssr: false });
+const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette').then((m) => m.CommandPalette), { ssr: false });
+const PlanHistorySidebar = dynamic(() => import('@/components/layout/PlanHistorySidebar').then((m) => m.PlanHistorySidebar), { ssr: false });
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
@@ -81,13 +83,51 @@ export default function WorkspacePage() {
     }
   };
 
+  const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false);
+
+  const fetchLazyBlueprint = useCallback(async (currentState: DeepSearchState) => {
+    if (!currentState || !currentState.input || !currentState.input.idea) return;
+
+    setIsGeneratingBlueprint(true);
+    try {
+      const response = await fetch('/api/blueprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: currentState.input,
+          papers: currentState.papers || [],
+          repos: currentState.repos || [],
+          patents: currentState.patents || [],
+          language: activeLanguage,
+        }),
+      });
+
+      const resData = await response.json();
+      if (resData.success && resData.blueprint) {
+        setSearchData((prev) => ({
+          ...prev,
+          blueprint: resData.blueprint,
+        }));
+      }
+    } catch (err) {
+      console.warn('[Lazy Blueprint] Fetch error:', err);
+    } finally {
+      setIsGeneratingBlueprint(false);
+    }
+  }, [activeLanguage]);
+
   // Helper to change step and persist in localStorage
   const changeStep = useCallback((step: StepId) => {
     setCurrentStep(step);
     if (typeof window !== 'undefined') {
       localStorage.setItem('ideaforge_active_step', step);
     }
-  }, []);
+
+    // Trigger lazy blueprint generation when navigating to Step 5 (Project HUB)
+    if (step === 'blueprint') {
+      fetchLazyBlueprint(searchData);
+    }
+  }, [fetchLazyBlueprint, searchData]);
 
   // Persist plan whenever searchData updates
   useEffect(() => {

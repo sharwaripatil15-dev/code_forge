@@ -25,31 +25,41 @@ export default function DevilsAdvocateStep({ data, onContinue, onUpdateQuestions
 
   const currentQ = questions[activeIdx];
 
-  const handleAnswerSubmit = (qId: string, customAnswer?: string, isSkip: boolean = false) => {
+  const handleAnswerSubmit = async (qId: string, customAnswer?: string, isSkip: boolean = false) => {
     const answerToUse = customAnswer || userInputs[qId] || '';
     const isWeak = !isSkip && answerToUse.trim().length > 0 && answerToUse.trim().length < 15;
     const isRecommended = customAnswer === currentQ.suggestedAnswer;
 
     setIsAiEvaluating(true);
 
-    setTimeout(() => {
-      let delta = +6;
-      let evalText = 'Verified custom technical defense. Architectural risk successfully mitigated.';
+    let delta = +6;
+    let evalText = 'Verified custom technical defense. Architectural risk successfully mitigated.';
 
+    try {
       if (isSkip) {
         delta = -8;
         evalText = 'Question skipped. Unmitigated architectural risk reduces feasibility rating.';
-      } else if (isWeak) {
-        delta = -6;
-        evalText = 'Insufficient technical detail provided. Partial feasibility risk flagged.';
-      } else if (isRecommended) {
-        delta = +7;
-        evalText = 'Recommended AI architectural reasoning applied. Feasibility confidence increased.';
       } else {
-        delta = +6;
-        evalText = 'Verified technical defense. Risk score updated.';
-      }
+        const response = await fetch('/api/devils', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: currentQ.question,
+            userAnswer: answerToUse || currentQ.suggestedAnswer,
+            focusArea: currentQ.focusArea,
+            ideaText: data.input.idea,
+          }),
+        });
 
+        const resJson = await response.json();
+        if (resJson.success && resJson.aiEvaluation) {
+          evalText = resJson.aiEvaluation;
+          delta = resJson.impactOnScore || (isRecommended ? +7 : isWeak ? -6 : +6);
+        }
+      }
+    } catch (err) {
+      console.warn('Devils Advocate live API fetch error, using fallback:', err);
+    } finally {
       const updatedQs = questions.map((q) => {
         if (q.id === qId) {
           return {
@@ -82,7 +92,7 @@ export default function DevilsAdvocateStep({ data, onContinue, onUpdateQuestions
       if (activeIdx < questions.length - 1) {
         setActiveIdx(activeIdx + 1);
       }
-    }, 550);
+    }
   };
 
   const allAnswered = questions.every((q) => !!q.userAnswer);

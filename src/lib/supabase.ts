@@ -174,7 +174,7 @@ export async function getUserPlansFromSupabase(email: string): Promise<DeepSearc
     console.log(`[Supabase DB] Fetching plans for ${cleanEmail}...`);
     const { data, error } = await supabase
       .from('plans')
-      .select('*')
+      .select('id, user_email, title, idea_text, category, target_user, created_at, updated_at, search_data, blueprint')
       .eq('user_email', cleanEmail)
       .order('created_at', { ascending: false });
 
