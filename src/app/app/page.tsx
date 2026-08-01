@@ -9,13 +9,15 @@ import GapMapStep from '@/components/workflow/GapMapStep';
 import DevilsAdvocateStep from '@/components/workflow/DevilsAdvocateStep';
 import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
+import DashboardStep from '@/components/workflow/DashboardStep';
 import ForgeTransformation from '@/components/workflow/ForgeTransformation';
+import AuthModal from '@/components/auth/AuthModal';
 
 const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette').then((m) => m.CommandPalette), { ssr: false });
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
-import { getOrCreateSession, saveUserBlueprint, loadUserBlueprint, UserSession } from '@/lib/supabase';
+import { getOrCreateSession, saveUserBlueprint, loadUserBlueprint, getUserPlansFromSupabase, logoutUserSession, UserSession } from '@/lib/supabase';
 import { LanguageCode } from '@/lib/translations';
 
 export default function WorkspacePage() {
@@ -27,6 +29,8 @@ export default function WorkspacePage() {
   const [activeLanguage, setActiveLanguage] = useState<LanguageCode>('en');
   const [isLoading, setIsLoading] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [userPlans, setUserPlans] = useState<DeepSearchState[]>([]);
 
   // Supabase Auth & Persistence Session
   const [session, setSession] = useState<UserSession>({
@@ -34,6 +38,17 @@ export default function WorkspacePage() {
     isLoggedIn: false,
     telegramConnectCode: 'FORGE-8421',
   });
+
+  const refreshUserPlans = useCallback(async (email: string) => {
+    try {
+      const plans = await getUserPlansFromSupabase(email);
+      if (plans && plans.length > 0) {
+        setUserPlans(plans);
+      }
+    } catch (err) {
+      console.warn('[User Plans] Refresh error:', err);
+    }
+  }, []);
 
   // Client-side Session & Saved Blueprint Restoration with Step & Language Persistence
   useEffect(() => {
@@ -45,11 +60,13 @@ export default function WorkspacePage() {
       setSearchData(saved);
     }
 
+    refreshUserPlans(clientSession.email);
+
     const savedStep = typeof window !== 'undefined'
       ? (localStorage.getItem('ideaforge_active_step') as StepId | null)
       : null;
 
-    if (savedStep && ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'].includes(savedStep)) {
+    if (savedStep && ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor', 'dashboard'].includes(savedStep)) {
       setCurrentStep(savedStep);
     } else if (saved && saved.blueprint) {
       setCurrentStep('blueprint');
@@ -59,7 +76,7 @@ export default function WorkspacePage() {
     if (savedLang && ['en', 'hi', 'es', 'fr', 'ja'].includes(savedLang)) {
       setActiveLanguage(savedLang);
     }
-  }, []);
+  }, [refreshUserPlans]);
 
   // Helper to change language and persist in localStorage
   const handleSelectLanguage = (lang: LanguageCode) => {
@@ -130,6 +147,27 @@ export default function WorkspacePage() {
     document.documentElement.setAttribute('data-theme', activeTheme);
   }, [activeTheme]);
 
+  const handleLoginSuccess = (email: string) => {
+    const updated: UserSession = {
+      ...session,
+      email,
+      isLoggedIn: true,
+    };
+    setSession(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ideaforge_user_session', JSON.stringify(updated));
+    }
+    const saved = loadUserBlueprint(email);
+    if (saved) setSearchData(saved);
+    refreshUserPlans(email);
+  };
+
+  const handleLogout = () => {
+    const updated = logoutUserSession();
+    setSession(updated);
+    setUserPlans([]);
+  };
+
   const handleToggleTheme = () => {
     if (activeTheme === 'forge') setActiveTheme('blueprint');
     else if (activeTheme === 'blueprint') setActiveTheme('cyberpunk');
@@ -168,6 +206,51 @@ export default function WorkspacePage() {
       setIsLoading(false);
       setHasInput(true);
     }
+  };
+
+  const handleSelectPlan = (plan: DeepSearchState) => {
+    setSearchData(plan);
+    changeStep('blueprint');
+  };
+
+  const handleNewIdea = () => {
+    setSearchData({
+      input: { idea: '', category: 'AI & Developer Tools', targetUser: 'Developers & Open Source Teams' },
+      papers: [],
+      repos: [],
+      patents: [],
+      webInsights: [],
+      clusters: [],
+      metrics: {
+        noveltyScore: 0,
+        feasibilityScore: 0,
+        technicalComplexity: 0,
+        marketImpact: 0,
+        executionSpeed: 0,
+        whiteSpaceTitle: '',
+        whiteSpaceDescription: '',
+        keyInnovations: [],
+      },
+      nodes: [],
+      devilsQuestions: [],
+      blueprint: {
+        title: '',
+        tagline: '',
+        problemStatement: '',
+        executiveSummary: '',
+        uniqueValueProposition: '',
+        architectureNodes: [],
+        techStack: [],
+        apisAndDatasets: [],
+        timeline: { totalEstimatedWeeks: 0, totalEstimatedHours: 0, criticalPath: '', phases: [] },
+        milestones: [],
+        scaffoldFiles: [],
+        telegramMentorPrompt: '',
+      },
+      isLive: true,
+    });
+    setHasInput(false);
+    changeStep('input');
   };
 
   const handleUpdateQuestions = (questions: DevilsAdvocateQuestion[]) => {
@@ -237,6 +320,9 @@ export default function WorkspacePage() {
         onToggleTheme={handleToggleTheme}
         activeLanguage={activeLanguage}
         onSelectLanguage={handleSelectLanguage}
+        userEmail={session.email}
+        isLoggedIn={session.isLoggedIn}
+        onLogout={handleLogout}
       />
 
       {/* Main Workspace Canvas */}
@@ -289,7 +375,24 @@ export default function WorkspacePage() {
             onUpdateMessages={handleUpdateMentorMessages}
           />
         )}
+
+        {currentStep === 'dashboard' && (
+          <DashboardStep
+            onSelectPlan={handleSelectPlan}
+            onNewIdea={handleNewIdea}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          />
+        )}
       </main>
+
+      {/* Auth Modal (Magic Link & Telegram Connection Code) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        session={session}
+        onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
+      />
 
       {/* Command Palette Modal */}
       <CommandPalette
@@ -306,3 +409,4 @@ export default function WorkspacePage() {
     </div>
   );
 }
+

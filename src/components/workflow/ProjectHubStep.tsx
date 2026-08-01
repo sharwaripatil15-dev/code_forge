@@ -13,8 +13,9 @@ import ArchitectureStressTester from '@/components/visualization/ArchitectureStr
 import PitchDeckModal from '@/components/workflow/PitchDeckModal';
 import ScaffoldGeneratorModal from '@/components/workflow/ScaffoldGeneratorModal';
 import ShareBlueprintModal from '@/components/ui/ShareBlueprintModal';
-import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, Play, Download, Share2, DollarSign, Activity, Box } from 'lucide-react';
+import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, FileDown, AlertCircle, Printer, Play, Download, Share2, DollarSign, Activity, Box } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { exportBlueprintToPDF } from '@/lib/exportUtils';
 
 interface ProjectHubStepProps {
   blueprint: ProjectBlueprint;
@@ -45,6 +46,36 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
   const [tempUsernameInput, setTempUsernameInput] = useState('');
   const [repoSlugName, setRepoSlugName] = useState<string>('');
   const [isLinkingRepo, setIsLinkingRepo] = useState(false);
+
+  // PDF / Presentation Blueprint Export State
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportSuccessMsg, setExportSuccessMsg] = useState<string | null>(null);
+
+  const handleExportBlueprint = async () => {
+    setIsExporting(true);
+    setExportError(null);
+    setExportSuccessMsg(null);
+
+    try {
+      const res = await exportBlueprintToPDF(blueprint);
+      if (res.success) {
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.7 } });
+        if (res.mode === 'print') {
+          setExportSuccessMsg('Pitch deck presentation PDF print window opened!');
+        } else {
+          setExportSuccessMsg('Downloaded presentation pitch blueprint HTML file!');
+        }
+        setTimeout(() => setExportSuccessMsg(null), 5000);
+      } else {
+        setExportError(res.error || 'Failed to generate presentation blueprint PDF.');
+      }
+    } catch (err: any) {
+      setExportError(err?.message || 'An unexpected error occurred during blueprint export.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const apisList = blueprint.apisAndDatasets || [];
   const timelineData = blueprint.timeline || {
@@ -125,43 +156,23 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
 
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto shrink-0 relative">
           <Button
-            variant="primary"
-            size="sm"
-            onClick={() => {
-              const el = document.getElementById('architecture-canvas-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="text-xs font-mono bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
+            variant="quenched"
+            size="md"
+            isLoading={isExporting}
+            onClick={handleExportBlueprint}
+            leftIcon={<FileDown className="w-4 h-4 text-brand-ember" />}
+            className="w-full sm:w-auto justify-center min-h-[44px]"
           >
-            <Box className="w-3.5 h-3.5 mr-1 text-cyan-400 animate-pulse" /> 3D Architecture
+            Export Blueprint PDF
           </Button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsPitchDeckOpen(true)}
-            className="text-xs font-mono bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
-          >
-            <Play className="w-3.5 h-3.5 mr-1 fill-amber-300" /> Pitch Deck
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsScaffoldModalOpen(true)}
-            className="text-xs font-mono bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
-          >
-            <Download className="w-3.5 h-3.5 mr-1" /> Scaffold (.ZIP)
-          </Button>
-
-          {/* Prominent Create GitHub Repo Button */}
           <Button
             variant="quenched"
-            size="sm"
+            size="md"
             isLoading={isCreatingRepo}
             onClick={() => handleCreateRepo()}
-            leftIcon={<GitBranch className="w-3.5 h-3.5 text-white" />}
-            className="text-xs font-mono bg-purple-500/20 border-purple-500/40 text-purple-300 hover:bg-purple-500/30 font-bold"
+            leftIcon={<GitBranch className="w-4 h-4 text-forge-white" />}
+            className="w-full sm:w-auto justify-center min-h-[44px]"
           >
             Create GitHub Repo
           </Button>
@@ -235,6 +246,21 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
           </div>
         </div>
       </Card>
+
+      {/* Export Success or Error Banners */}
+      {exportSuccessMsg && (
+        <Card variant="solid" className="bg-emerald-500/10 border-emerald-500/30 p-4 flex items-center gap-3">
+          <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-sm font-sans font-semibold text-emerald-300">{exportSuccessMsg}</span>
+        </Card>
+      )}
+
+      {exportError && (
+        <Card variant="solid" className="bg-rose-500/10 border-rose-500/30 p-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+          <span className="text-sm font-sans font-semibold text-rose-300">{exportError}</span>
+        </Card>
+      )}
 
       {/* GitHub Created Repository Direct Action Banner */}
       {isLinkingRepo && (

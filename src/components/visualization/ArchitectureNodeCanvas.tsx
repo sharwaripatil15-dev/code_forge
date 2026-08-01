@@ -20,7 +20,7 @@ interface ArchitectureNodeCanvasProps {
 
 function ArchitectureNodeCanvas({ nodes }: ArchitectureNodeCanvasProps) {
   const [selectedNode, setSelectedNode] = useState<ArchitectureNode | null>(null);
-  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
 
   if (!nodes || nodes.length === 0) return null;
 

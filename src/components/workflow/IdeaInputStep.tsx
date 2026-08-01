@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SAMPLE_IDEAS } from '@/lib/mock/mockData';
 import { IdeaInputData } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Textarea, Select, Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Input';
 import { Mic, ArrowRight, Lightbulb, Zap, ChevronRight } from 'lucide-react';
 
 import { LanguageCode, getTranslation } from '@/lib/translations';
@@ -24,6 +24,14 @@ export default function IdeaInputStep({ onSubmitIdea, initialInput, activeLangua
   const [category, setCategory] = useState(initialInput?.category || 'AI & Developer Tools');
   const [targetUser, setTargetUser] = useState(initialInput?.targetUser || 'Developers & Open Source Teams');
   const [isRecording, setIsRecording] = useState(false);
+
+  useEffect(() => {
+    if (initialInput) {
+      setIdeaText(initialInput.idea || '');
+      setCategory(initialInput.category || 'AI & Developer Tools');
+      setTargetUser(initialInput.targetUser || 'Developers & Open Source Teams');
+    }
+  }, [initialInput]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,29 +103,6 @@ export default function IdeaInputStep({ onSubmitIdea, initialInput, activeLangua
               onChange={(e) => setIdeaText(e.target.value)}
               placeholder={t.describePlaceholder}
               className="text-base"
-            />
-          </div>
-
-          {/* Category & Audience Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <Select
-              label={t.domainLabel}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="AI & Developer Tools">AI & Developer Tools</option>
-              <option value="Healthcare & BioTech">Healthcare & BioTech</option>
-              <option value="CleanTech & IoT">CleanTech & IoT</option>
-              <option value="FinTech & Web3">FinTech & Web3</option>
-              <option value="EdTech & Productivity">EdTech & Productivity</option>
-            </Select>
-
-            <Input
-              label={t.targetUserLabel}
-              type="text"
-              value={targetUser}
-              onChange={(e) => setTargetUser(e.target.value)}
-              placeholder="e.g. Developers, Researchers, Patients"
             />
           </div>
 
