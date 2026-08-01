@@ -2,23 +2,17 @@
 
 import React from 'react';
 import { StepId } from '@/lib/types';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
+import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Palette, Globe, type LucideIcon } from 'lucide-react';
 import { LANGUAGES, LanguageCode, getTranslation } from '@/lib/translations';
 
 interface NavbarProps {
   currentStep: StepId;
   onSelectStep: (step: StepId) => void;
-  onOpenCommandPalette?: () => void;
-  onOpenAuthModal?: () => void;
   hasInput: boolean;
   activeTheme?: string;
   onToggleTheme?: () => void;
   activeLanguage?: LanguageCode;
   onSelectLanguage?: (lang: LanguageCode) => void;
-  userEmail?: string;
-  isLoggedIn?: boolean;
 }
 
 const STEP_ORDER: StepId[] = ['input', 'search', 'gapmap', 'devils', 'blueprint', 'mentor'];
@@ -35,15 +29,11 @@ const STEPS: { id: StepId; label: string; icon: LucideIcon }[] = [
 export default function Navbar({
   currentStep,
   onSelectStep,
-  onOpenCommandPalette,
-  onOpenAuthModal,
   hasInput,
   activeTheme,
   onToggleTheme,
   activeLanguage = 'en',
   onSelectLanguage,
-  userEmail,
-  isLoggedIn,
 }: NavbarProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
   const t = getTranslation(activeLanguage);
@@ -178,21 +168,6 @@ export default function Navbar({
                   </select>
                 </div>
               )}
-
-              {/* Auth Trigger */}
-              {onOpenAuthModal && (
-                <button
-                  onClick={onOpenAuthModal}
-                  className={`h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-xs font-mono transition min-h-[44px] shrink-0 ${
-                    isLoggedIn
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold'
-                      : 'bg-brand-ember/15 border-brand-ember/30 text-brand-ember hover:bg-brand-ember/25'
-                  }`}
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span className="truncate max-w-[110px]">{userEmail ? userEmail.split('@')[0] : 'Magic Link'}</span>
-                </button>
-              )}
             </div>
           </nav>
 
@@ -205,16 +180,6 @@ export default function Navbar({
                 title="Toggle Theme"
               >
                 <Palette className="w-4 h-4" />
-              </button>
-            )}
-
-            {onOpenAuthModal && (
-              <button
-                onClick={onOpenAuthModal}
-                className="p-2.5 rounded-lg bg-forge-surface border border-quenched-steel/30 text-brand-ember min-h-[44px] min-w-[44px] flex items-center justify-center"
-                title="Account Auth"
-              >
-                <User className="w-4 h-4" />
               </button>
             )}
           </div>
