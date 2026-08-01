@@ -11,10 +11,9 @@ import ProjectHubStep from '@/components/workflow/ProjectHubStep';
 import MentorStep from '@/components/workflow/MentorStep';
 import DashboardStep from '@/components/workflow/DashboardStep';
 import ForgeTransformation from '@/components/workflow/ForgeTransformation';
+import AuthModal from '@/components/auth/AuthModal';
 
-const AuthModal = dynamic(() => import('@/components/auth/AuthModal'), { ssr: false });
 const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette').then((m) => m.CommandPalette), { ssr: false });
-const PlanHistorySidebar = dynamic(() => import('@/components/layout/PlanHistorySidebar').then((m) => m.PlanHistorySidebar), { ssr: false });
 
 import { MOCK_DATASETS } from '@/lib/mock/mockData';
 import { StepId, IdeaInputData, DeepSearchState, DevilsAdvocateQuestion, GapMetrics } from '@/lib/types';
@@ -24,14 +23,14 @@ import { LanguageCode } from '@/lib/translations';
 export default function WorkspacePage() {
   const [currentStep, setCurrentStep] = useState<StepId>('input');
   const [searchData, setSearchData] = useState<DeepSearchState>(MOCK_DATASETS.default);
-  const [userPlans, setUserPlans] = useState<DeepSearchState[]>([]);
   const [hasInput, setHasInput] = useState(true);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [activeTheme, setActiveTheme] = useState<'forge' | 'blueprint' | 'cyberpunk'>('forge');
   const [activeLanguage, setActiveLanguage] = useState<LanguageCode>('en');
   const [isLoading, setIsLoading] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [userPlans, setUserPlans] = useState<DeepSearchState[]>([]);
 
   // Supabase Auth & Persistence Session
   const [session, setSession] = useState<UserSession>({
@@ -41,9 +40,13 @@ export default function WorkspacePage() {
   });
 
   const refreshUserPlans = useCallback(async (email: string) => {
-    const plans = await getUserPlansFromSupabase(email);
-    if (plans && plans.length > 0) {
-      setUserPlans(plans);
+    try {
+      const plans = await getUserPlansFromSupabase(email);
+      if (plans && plans.length > 0) {
+        setUserPlans(plans);
+      }
+    } catch (err) {
+      console.warn('[User Plans] Refresh error:', err);
     }
   }, []);
 
@@ -56,6 +59,8 @@ export default function WorkspacePage() {
     if (saved) {
       setSearchData(saved);
     }
+
+    refreshUserPlans(clientSession.email);
 
     const savedStep = typeof window !== 'undefined'
       ? (localStorage.getItem('ideaforge_active_step') as StepId | null)
@@ -71,8 +76,6 @@ export default function WorkspacePage() {
     if (savedLang && ['en', 'hi', 'es', 'fr', 'ja'].includes(savedLang)) {
       setActiveLanguage(savedLang);
     }
-
-    refreshUserPlans(clientSession.email);
   }, [refreshUserPlans]);
 
   // Helper to change language and persist in localStorage
@@ -136,10 +139,9 @@ export default function WorkspacePage() {
         if (updatedState && updatedState.id && !searchData.id) {
           setSearchData(updatedState);
         }
-        refreshUserPlans(session.email);
       });
     }
-  }, [searchData, session.email, refreshUserPlans]);
+  }, [searchData, session.email]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', activeTheme);
@@ -301,15 +303,6 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-forge-black text-forge-white flex flex-col selection:bg-brand-ember selection:text-white font-sans relative">
-      
-      {/* 0. Collapsible Left Plan History Sidebar */}
-      <PlanHistorySidebar
-        plans={userPlans}
-        currentPlanId={searchData.id}
-        onSelectPlan={handleSelectPlan}
-        onNewIdea={handleNewIdea}
-      />
-
       {/* Signature Moment: Forge Transformation Overlay */}
       {isTransforming && (
         <ForgeTransformation
@@ -322,8 +315,6 @@ export default function WorkspacePage() {
       <Navbar
         currentStep={currentStep}
         onSelectStep={changeStep}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         hasInput={hasInput}
         activeTheme={activeTheme}
         onToggleTheme={handleToggleTheme}
@@ -418,3 +409,4 @@ export default function WorkspacePage() {
     </div>
   );
 }
+
