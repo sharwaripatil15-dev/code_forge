@@ -5,11 +5,7 @@ import Link from 'next/link';
 import { StepId } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-<<<<<<< HEAD
 import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Command, Sun, Palette, User, ShieldCheck, Globe, LayoutDashboard, type LucideIcon } from 'lucide-react';
-=======
-import { Lightbulb, Search, Network, Swords, Rocket, Layers, Check, Sun, Palette, User, ShieldCheck, Globe, type LucideIcon } from 'lucide-react';
->>>>>>> upstream/main
 import { LANGUAGES, LanguageCode, getTranslation } from '@/lib/translations';
 
 interface NavbarProps {

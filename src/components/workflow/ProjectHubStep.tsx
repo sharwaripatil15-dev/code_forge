@@ -7,18 +7,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import ArchitectureNodeCanvas from '@/components/visualization/ArchitectureNodeCanvas';
 import TeamSkillMatrix from './TeamSkillMatrix';
-<<<<<<< HEAD
-import BuildResourcesPanel from '../visualization/BuildResourcesPanel';
-import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, FileDown, AlertCircle, Printer } from 'lucide-react';
-=======
 import BuildResourcesPanel from '@/components/visualization/BuildResourcesPanel';
 import CloudCostEstimator from '@/components/visualization/CloudCostEstimator';
 import ArchitectureStressTester from '@/components/visualization/ArchitectureStressTester';
 import PitchDeckModal from '@/components/workflow/PitchDeckModal';
 import ScaffoldGeneratorModal from '@/components/workflow/ScaffoldGeneratorModal';
 import ShareBlueprintModal from '@/components/ui/ShareBlueprintModal';
-import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, Play, Download, Share2, DollarSign, Activity, Box } from 'lucide-react';
->>>>>>> upstream/main
+import { Rocket, Layers, Cpu, Calendar, Copy, Check, Send, Terminal, FileCode, GitBranch, ExternalLink, Database, Clock, CheckSquare, Folder, FileText, ChevronRight, FileDown, AlertCircle, Printer, Play, Download, Share2, DollarSign, Activity, Box } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { exportBlueprintToPDF } from '@/lib/exportUtils';
 
@@ -161,7 +156,6 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
 
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto shrink-0 relative">
           <Button
-<<<<<<< HEAD
             variant="quenched"
             size="md"
             isLoading={isExporting}
@@ -179,7 +173,11 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
             onClick={() => handleCreateRepo()}
             leftIcon={<GitBranch className="w-4 h-4 text-forge-white" />}
             className="w-full sm:w-auto justify-center min-h-[44px]"
-=======
+          >
+            Create GitHub Repo
+          </Button>
+
+          <Button
             variant="primary"
             size="sm"
             onClick={() => {
@@ -187,7 +185,6 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
             className="text-xs font-mono bg-cyan-500/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
->>>>>>> upstream/main
           >
             <Box className="w-3.5 h-3.5 mr-1 text-cyan-400 animate-pulse" /> 3D Architecture
           </Button>

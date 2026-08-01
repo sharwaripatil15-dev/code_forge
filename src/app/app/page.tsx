@@ -213,7 +213,7 @@ export default function WorkspacePage() {
 
   const handleNewIdea = () => {
     setSearchData({
-      input: { idea: '', category: 'Tech', targetUser: 'Developers' },
+      input: { idea: '', category: 'AI & Developer Tools', targetUser: 'Developers & Open Source Teams' },
       papers: [],
       repos: [],
       patents: [],
