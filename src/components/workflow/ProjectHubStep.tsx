@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import ArchitectureNodeCanvas from '@/components/visualization/ArchitectureNodeCanvas';
 import TeamSkillMatrix from './TeamSkillMatrix';
+import SprintMilestonesCustomizer from './SprintMilestonesCustomizer';
 import BuildResourcesPanel from '@/components/visualization/BuildResourcesPanel';
 import CloudCostEstimator from '@/components/visualization/CloudCostEstimator';
 import ArchitectureStressTester from '@/components/visualization/ArchitectureStressTester';
@@ -497,62 +498,7 @@ export default function ProjectHubStep({ blueprint, onOpenTelegramMentor }: Proj
       </Card>
 
       {/* SECTION 5: Milestones Roadmap & Actionable Steps */}
-      <Card variant="blueprint" className="p-8 space-y-6 shadow-xl">
-        <h3 className="text-lg font-display font-extrabold text-forge-white flex items-center gap-3 border-b border-quenched-steel/20 pb-4">
-          <Calendar className="w-5 h-5 text-brand-ember" />
-          <span>5. Sprint Milestones & Actionable Task Breakdown</span>
-        </h3>
-
-        <div className="space-y-4">
-          {blueprint.milestones.map((m) => (
-            <Card key={m.week} variant="solid" className="p-6 space-y-4 border-quenched-steel/25">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-brand-ember text-white font-mono font-bold text-xs flex items-center justify-center">
-                    {m.week}
-                  </span>
-                  <h4 className="text-sm font-display font-bold text-forge-white">{m.title}</h4>
-                  {m.completed && (
-                    <Badge variant="emerald" size="sm">
-                      ✓ COMPLETED
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-xs font-mono font-bold text-quenched-steel-light">{m.duration}</span>
-              </div>
-
-              {/* Actionable Tasks List */}
-              {m.actionableSteps && m.actionableSteps.length > 0 && (
-                <div className="bg-forge-black/50 border border-quenched-steel/20 p-4 rounded-blueprint space-y-2">
-                  <span className="text-[10px] font-mono font-bold text-brand-ember uppercase tracking-widest flex items-center gap-1.5">
-                    <CheckSquare className="w-3.5 h-3.5" />
-                    <span>Actionable Engineering Tasks:</span>
-                  </span>
-                  <ul className="space-y-1.5 pl-1">
-                    {m.actionableSteps.map((task, tIdx) => (
-                      <li key={tIdx} className="text-xs font-sans text-zinc-200 flex items-start gap-2">
-                        <span className="text-brand-ember font-mono text-[11px] font-bold">•</span>
-                        <span>{task}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-sans text-zinc-300 pt-1">
-                <div>
-                  <span className="font-bold text-emerald-400 font-mono">Deliverables: </span>
-                  {m.deliverables.join(', ')}
-                </div>
-                <div>
-                  <span className="font-bold text-amber-molten font-mono">Potential Risk: </span>
-                  {m.potentialRisk}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </Card>
+      <SprintMilestonesCustomizer initialMilestones={blueprint.milestones} />
 
       {/* TEAM SKILL-GAP MATRIX */}
       <TeamSkillMatrix
