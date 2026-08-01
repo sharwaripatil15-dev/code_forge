@@ -28,15 +28,18 @@ export default function GapMapStep({ data, onContinue }: GapMapStepProps) {
       {/* Step Header */}
       <Card variant="blueprint" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <Network className="w-5 h-5 text-brand-ember" />
             <h2 className="text-xl font-display font-bold text-forge-white">Opportunity Gap Map</h2>
             <Badge variant="ember" size="sm">
-              Visual Knowledge Clustering
+              0 - 100 Visual Scale
+            </Badge>
+            <Badge variant="outline" size="sm" className="font-mono text-zinc-400">
+              User-Guided Map
             </Badge>
           </div>
           <p className="text-xs font-sans text-zinc-400">
-            Hover and click nodes to explore current solutions. The glowing white-space zone highlights your uncrowded target market.
+            Node clusters plot existing market solutions on a 0-100 scale. Click nodes to inspect details, or use the <strong>"How to Read This Map?"</strong> guide button for help.
           </p>
         </div>
 
