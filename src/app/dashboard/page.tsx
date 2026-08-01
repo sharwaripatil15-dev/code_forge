@@ -287,8 +287,6 @@ export default function DashboardPage() {
       <Navbar
         currentStep="dashboard"
         onSelectStep={() => router.push('/app')}
-        onOpenCommandPalette={() => {}}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         hasInput={true}
         activeTheme={activeTheme}
         onToggleTheme={handleToggleTheme}
