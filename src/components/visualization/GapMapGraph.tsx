@@ -580,7 +580,7 @@ function GapMapGraph({ nodes, whiteSpaceTitle, whiteSpaceDescription }: GapMapGr
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-base font-display font-bold text-forge-white">{selectedNode.label}</h4>
-                  <Badge variant={selectedNode.type === 'opportunity' ? 'ember' : 'outline'} size="sm" className="font-mono">
+                  <Badge variant={selectedNode.type === 'opportunity' ? 'ember' : 'quenched'} size="sm" className="font-mono">
                     Score: X-{selectedNode.scaleX}%, Y-{selectedNode.scaleY}
                   </Badge>
                 </div>

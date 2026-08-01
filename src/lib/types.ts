@@ -68,6 +68,8 @@ export interface GapNode {
   starsOrCitations?: string;
   x?: number;
   y?: number;
+  scaleX?: number;
+  scaleY?: number;
   vx?: number;
   vy?: number;
 }

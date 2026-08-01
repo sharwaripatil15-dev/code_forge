@@ -34,7 +34,7 @@ export default function GapMapStep({ data, onContinue }: GapMapStepProps) {
             <Badge variant="ember" size="sm">
               0 - 100 Visual Scale
             </Badge>
-            <Badge variant="outline" size="sm" className="font-mono text-zinc-400">
+            <Badge variant="mono" size="sm" className="font-mono text-zinc-400">
               User-Guided Map
             </Badge>
           </div>
